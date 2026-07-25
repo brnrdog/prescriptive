@@ -28,6 +28,12 @@ let isDesktop: unit => bool = %raw(`() => window.innerWidth >= 1024`)
 let sidebarOpen = Signal.make(isDesktop())
 let spotlightOpen = Signal.make(false)
 
+// The landing page is the marketing front door: it owns the full width and
+// carries its own nav and footer, so the docs rail steps aside while it's up
+// and returns as soon as you enter the catalogue.
+let onLanding = () => Computed.make(() => Signal.get(Router.location()).pathname == "/")
+let notLanding = () => Computed.make(() => Signal.get(Router.location()).pathname != "/")
+
 module LayerBadge = {
   @jsx.component
   let make = (~layer) =>
@@ -254,15 +260,33 @@ module Sidebar = {
 
 module Topbar = {
   @jsx.component
-  let make = () =>
+  let make = () => {
+    let landing = onLanding()
+    let docs = notLanding()
+    // On the landing page the rail is hidden, so its toggle gives way to the
+    // marketing nav.
+    let navLink = (to, label) =>
+      <Router.Link to class="text-sm text-muted transition-colors hover:text-ink">
+        <View.Text> label </View.Text>
+      </Router.Link>
     <header class="flex h-14 shrink-0 items-center gap-3 border-b border-neutral-200 bg-surface px-3">
-      <IconButton label="Toggle sidebar" onClick={_ => Signal.update(sidebarOpen, v => !v)}>
-        <Icon name="menu" />
-      </IconButton>
-      <Router.Link to="/" class="flex items-center gap-2">
-        <span class="flex size-7 items-center justify-center rounded-lg bg-action text-xs font-bold text-on-action"> <View.Text> "X" </View.Text> </span>
+      <View.Show when_={Prop.signal(docs)}>
+        <IconButton label="Toggle sidebar" onClick={_ => Signal.update(sidebarOpen, v => !v)}>
+          <Icon name="menu" />
+        </IconButton>
+      </View.Show>
+      <Router.Link to="/" class="flex items-center gap-2 sm:pl-1">
+        <span class="flex size-7 items-center justify-center rounded-lg bg-action text-xs font-bold text-on-action"> <View.Text> "P" </View.Text> </span>
         <span class="hidden text-sm font-semibold tracking-tight text-neutral-900 sm:block"> <View.Text> "Prescriptive" </View.Text> </span>
       </Router.Link>
+      <View.Show when_={Prop.signal(landing)}>
+        <nav class="hidden items-center gap-5 pl-4 md:flex">
+          {navLink("/guide", "Get started")}
+          {navLink("/a/button", "Specs")}
+          {navLink("/showcase", "Examples")}
+          {navLink("/tokens", "Tokens")}
+        </nav>
+      </View.Show>
       <div class="flex flex-1 justify-center">
         <button
           class="flex w-full min-w-0 max-w-sm items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-1.5 text-sm text-neutral-400 transition-colors hover:bg-neutral-100"
@@ -282,6 +306,7 @@ module Topbar = {
       </Link>
       <Settings.Trigger />
     </header>
+  }
 }
 
 module Spotlight = {
@@ -376,101 +401,6 @@ module Spotlight = {
         </div>
       </div>
     </View.Show>
-  }
-}
-
-module Home = {
-  @jsx.component
-  let make = () => {
-    // A stat card links into its layer (first spec) and lifts on hover.
-    let stat = (layer, title) => {
-      let dest = switch inLayer(layer)->Array.get(0) {
-      | Some(a) => "/a/" ++ a.id
-      | None => "/"
-      }
-      <Router.Link to={dest} class={Ui.cardInteractive ++ " group block p-5"}>
-        <div class="flex items-center justify-between">
-          <span class="text-3xl font-bold tabular-nums tracking-tight text-neutral-900">
-            <View.Text> {inLayer(layer)->Array.length->Int.toString} </View.Text>
-          </span>
-          <LayerBadge layer />
-        </div>
-        <div class="mt-2 flex items-center gap-1 text-sm text-neutral-500">
-          <View.Text> {title} </View.Text>
-          <span class="opacity-0 transition-opacity group-hover:opacity-100"> <Icon name="arrow-right" size=#sm /> </span>
-        </div>
-      </Router.Link>
-    }
-    // A featured entry: title + one-liner + layer, lifts on hover.
-    let feature = id =>
-      switch byId(id) {
-      | Some(a) =>
-        <Router.Link to={"/a/" ++ a.id} class={Ui.cardInteractive ++ " flex flex-col gap-2 p-5"}>
-          <div class="flex items-center justify-between gap-2">
-            <span class="font-semibold tracking-tight text-neutral-900"> <View.Text> {a.title} </View.Text> </span>
-            <LayerBadge layer={a.layer} />
-          </div>
-          <span class="text-sm leading-relaxed text-neutral-500"> <View.Text> {a.summary} </View.Text> </span>
-        </Router.Link>
-      | None => View.null()
-      }
-    <div>
-      <div class="hero-wash border-b border-neutral-200">
-        <div class="mx-auto max-w-4xl px-5 pb-12 pt-10 sm:px-8 sm:pt-16">
-          <Badge variant=#outline> <View.Text> "Monochrome · Xote · ReScript" </View.Text> </Badge>
-          <h1 class="mt-6 text-4xl font-bold leading-[1.05] tracking-tight text-neutral-900 sm:text-5xl">
-            <View.Text> "User Experience" </View.Text>
-            <br />
-            <span class="text-neutral-400"> <View.Text> "Specs" </View.Text> </span>
-          </h1>
-          <p class="mt-5 max-w-xl text-lg leading-relaxed text-neutral-600">
-            <View.Text> "A technology-agnostic catalogue of UI patterns. Browse every spec in the sidebar and see a live implementation rendered with " </View.Text>
-            <Link href="https://xote.dev" newTab=true> <View.Text> "Xote" </View.Text> </Link>
-            <View.Text> "." </View.Text>
-          </p>
-          <div class="mt-7 flex flex-wrap gap-3">
-            <Router.Link to="/guide">
-              <Button variant=#primary size=#lg>
-                <View.Text> "Get started" </View.Text>
-                <Icon name="arrow-right" size=#sm />
-              </Button>
-            </Router.Link>
-            <Router.Link to="/tokens">
-              <Button variant=#secondary size=#lg> <View.Text> "Design tokens" </View.Text> </Button>
-            </Router.Link>
-            <Router.Link to="/kitchen-sink">
-              <Button variant=#ghost size=#lg> <View.Text> "Kitchen sink" </View.Text> </Button>
-            </Router.Link>
-          </div>
-        </div>
-      </div>
-      <div class="mx-auto max-w-4xl px-5 sm:px-8 py-12">
-        <div class="grid grid-cols-2 gap-4 sm:grid-cols-5">
-          {stat("element", "Elements")}
-          {stat("component", "Components")}
-          {stat("block", "Blocks")}
-          {stat("page", "Pages")}
-          {stat("flow", "Flows")}
-        </div>
-        <h2 class="mt-14 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-          <View.Text> "Start here" </View.Text>
-        </h2>
-        <div class="mt-4 grid gap-4 sm:grid-cols-3">
-          {feature("button")}
-          {feature("alert")}
-          {feature("dashboard")}
-        </div>
-        <p class="mt-12 text-sm text-neutral-500">
-          <View.Text> "Press " </View.Text>
-          <Kbd> <View.Text> "⌘K" </View.Text> </Kbd>
-          <View.Text> " to search anything, or open the " </View.Text>
-          <Router.Link to="/guide" class="underline decoration-neutral-300 underline-offset-4 hover:decoration-neutral-900">
-            <View.Text> "Get Started guide" </View.Text>
-          </Router.Link>
-          <View.Text> "." </View.Text>
-        </p>
-      </div>
-    </div>
   }
 }
 
@@ -1128,7 +1058,7 @@ let make = () => {
     None
   })
   let routes = Router.routes([
-    {pattern: "/", render: _ => <Home />},
+    {pattern: "/", render: _ => <Landing />},
     {pattern: "/guide", render: _ => <Guide />},
     {pattern: "/showcase", render: _ => <Showcase />},
     {pattern: "/kitchen-sink", render: _ => <KitchenSink />},
@@ -1136,12 +1066,18 @@ let make = () => {
     {pattern: "/a/:id", render: params => <Detail id={params->Dict.get("id")->Option.getOr("")} />},
     {pattern: "/t/:id", render: params => <TraitDetail id={params->Dict.get("id")->Option.getOr("")} />},
   ])
+  // The docs rail (and its mobile scrim) belong to the catalogue, not to the
+  // landing page.
+  let docs = notLanding()
+  let scrim = Computed.make(() =>
+    Signal.get(sidebarOpen) && Signal.get(Router.location()).pathname != "/"
+  )
   <div class="flex h-screen flex-col">
     <Topbar />
     <div class="flex min-h-0 flex-1">
-      <Sidebar />
+      <View.Show when_={Prop.signal(docs)}> <Sidebar /> </View.Show>
       // Dim the page behind the mobile drawer.
-      <View.Show when_={Prop.signal(sidebarOpen)}>
+      <View.Show when_={Prop.signal(scrim)}>
         <div
           class="fixed inset-0 top-14 z-30 bg-neutral-900/40 lg:hidden"
           onClick={_ => Signal.set(sidebarOpen, false)}
