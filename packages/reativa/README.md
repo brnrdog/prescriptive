@@ -13,13 +13,16 @@ reactive regions (driven by signals) update in place.
 
 ## What's implemented
 
-26 elements, 18 components, and 13 blocks:
+The full set `@prescriptive/xote` covers — 26 elements, 42 components, 13 blocks,
+5 pages, and 3 flows:
 
 | Layer | Specs |
 | ----- | ----- |
 | element | `aspect-ratio` `avatar` `badge` `button` `checkbox` `icon` `icon-button` `input` `input-otp` `kbd` `label` `legend` `link` `logo` `progress` `radio-group` `scroll-area` `separator` `skeleton` `slider` `spinner` `switch` `textarea` `toggle` `toggle-group` `typography` |
-| component | `accordion` `alert` `breadcrumb` `button-group` `card` `collapsible` `dialog` `empty-state` `field` `footer` `input-group` `list` `pagination` `select` `stat` `tabs` `toolbar` `tooltip` |
+| component | `accordion` `alert` `alert-dialog` `breadcrumb` `button-group` `calendar` `card` `carousel` `chart` `collapsible` `combobox` `command` `comment` `context-menu` `data-table` `date-picker` `dialog` `drawer` `dropdown-menu` `empty-state` `field` `footer` `form` `hover-card` `input-group` `list` `menubar` `navbar` `navigation-menu` `pagination` `popover` `resizable` `search` `select` `sheet` `sidebar` `stat` `table` `tabs` `toast` `toolbar` `tooltip` |
 | block | `announcement-bar` `contact-section` `cta-section` `faq` `feature-grid` `hero` `logo-cloud` `newsletter` `page-header` `pricing-table` `stat-grid` `steps` `testimonial` |
+| page | `dashboard` `landing-page` `pricing` `settings` `sign-in` |
+| flow | `authentication` `checkout` `onboarding` |
 
 Each component is a plain function — `Button.make ~variant:\`primary ~children ()`
 — and composes the others. Enum prop types (`variant`, `size`, …) are generated
