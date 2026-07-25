@@ -1,8 +1,8 @@
 # Prescriptive — Website
 
-An interactive catalogue for the specs in this repository. Browse every
-spec in the sidebar and see a **live implementation rendered with
-[Xote](https://xote.dev)** for each one.
+A **landing page** for the framework at `/`, plus an interactive catalogue for
+the specs in this repository: browse every spec in the sidebar and see a **live
+implementation rendered with [Xote](https://xote.dev)** for each one.
 
 ## Stack
 
@@ -39,6 +39,8 @@ src/ReativaSource.res         the same examples' reativa (OCaml) source
         │
         ▼
 src/App.res                   sidebar + router (Xote Router) + the example block
+src/Landing.res               the landing page at `/` — composed from the spec
+                              components and painted with the token roles
 src/Playground.res            per-spec knobs + the live, knob-driven preview
 src/{Button,Badge,Input,Field,Avatar,Switch,Spinner,Kbd,Separator,Backdrop,
      Link,IconButton}.res     reusable components, one per file, referenced
@@ -63,6 +65,20 @@ guarantees the sidebar always lists every spec in the collection.
 Each spec's example is a small self-contained Xote component in
 `Examples.res`; `Examples.get(id)` maps a spec `id` to its rendered node.
 Specs without an example fall back to a graceful placeholder.
+
+## The landing page
+
+`/` is a marketing page for the framework itself, and doubles as a live proof of
+it. It follows the [`landing-page`](../specs/pages/landing-page.md) spec's
+anatomy — hero, social proof, feature grid, "how it works" steps, FAQ, closing
+CTA, footer — with one repeated primary action. It is assembled from the same
+spec components the catalogue documents (`Button`, `Badge`, `Switch`,
+`Progress`, `Alert`, `Steps`, `LogoCloud`, …), every figure it quotes is read
+from the generated registries (`SpecsData`, `TraitsData`, `TokensData`,
+`ThemesData`) rather than hardcoded, and its theme strip applies the same
+presets as the settings panel — so re-skinning the page is a token change you
+can watch happen. The docs sidebar hides while the landing page is up and
+returns when you enter the catalogue.
 
 ## The example block
 
