@@ -930,6 +930,264 @@ let cta_section_example () =
     ]
 
 (* ------------------------------------------------------------------ *)
+(* playgrounds — one component rendered from the current knob values   *)
+(* ------------------------------------------------------------------ *)
+
+(* The website owns the playground's knob definitions and control strip
+   (website/src/Playground.res); an implementation only has to render a single
+   component from the knob values. These arms mirror the Xote render functions
+   prop for prop, so selecting "Reativa" re-renders the very same knobs against
+   this package's components.
+
+   Values arrive as the strings the controls hold, so each arm maps them back
+   onto the component's typed props — the same mapping the Xote playground does,
+   and the contract types keep the allowed values honest. *)
+
+let playground_for spec_id (get : string -> string) =
+  let is_true prop = get prop = "true" in
+  let int_or prop fallback =
+    match int_of_string_opt (get prop) with Some n -> n | None -> fallback
+  in
+  match spec_id with
+  | "button" ->
+    let variant : Contracts.Button.variant =
+      match get "variant" with
+      | "secondary" -> `secondary
+      | "ghost" -> `ghost
+      | "destructive" -> `destructive
+      | _ -> `primary
+    in
+    let size : Contracts.Button.size =
+      match get "size" with "sm" -> `sm | "lg" -> `lg | _ -> `md
+    in
+    Button.make ~variant ~size ~disabled:(is_true "disabled") ~loading:(is_true "loading")
+      ~children:[ txt (get "label") ] ()
+  | "badge" ->
+    let variant : Contracts.Badge.variant =
+      match get "variant" with "soft" -> `soft | "outline" -> `outline | _ -> `solid
+    in
+    Badge.make ~variant ~children:[ txt (get "label") ] ()
+  | "avatar" ->
+    let size =
+      match get "size" with
+      | "sm" -> "size-8 text-xs"
+      | "lg" -> "size-12 text-base"
+      | "xl" -> "size-14 text-lg"
+      | _ -> "size-10 text-sm"
+    in
+    Avatar.make ~initials:(get "initials") ~size ()
+  | "alert" ->
+    let variant : Contracts.Alert.variant =
+      match get "variant" with
+      | "success" -> `success
+      | "warning" -> `warning
+      | "danger" -> `danger
+      | _ -> `info
+    in
+    el ~cls:"w-full max-w-md" "div"
+      [ Alert.make ~variant ~title:(get "title") ~description:(get "description") () ]
+  | "checkbox" ->
+    Checkbox.make ~checked:(Signal.make true) ~label:(get "label")
+      ~description:(get "description") ~indeterminate:(is_true "indeterminate")
+      ~disabled:(is_true "disabled") ()
+  | "switch" ->
+    Switch.make ~checked:(Signal.make true) ~label:(get "label") ~disabled:(is_true "disabled") ()
+  | "slider" ->
+    el ~cls:"w-64" "div"
+      [
+        Slider.make ~value:(Signal.make 40) ~step:(int_or "step" 1)
+          ~disabled:(is_true "disabled") ();
+      ]
+  | "progress" ->
+    el ~cls:"w-64" "div"
+      [
+        Progress.make ~value:(Signal.make (int_or "value" 30))
+          ~indeterminate:(is_true "indeterminate") ();
+      ]
+  | "spinner" ->
+    let size = match get "size" with "md" -> "size-6" | "lg" -> "size-8" | _ -> "size-4" in
+    Spinner.make ~size ()
+  | "skeleton" ->
+    let shape, extra_class =
+      match get "shape" with
+      | "circle" -> ((`circle : Contracts.Skeleton.shape), "size-10")
+      | "rect" -> (`rect, "h-16 w-40")
+      | _ -> (`text, "w-40")
+    in
+    Skeleton.make ~shape ~extra_class ()
+  | "separator" -> (
+    match get "orientation" with
+    | "vertical" ->
+      el ~cls:"flex items-center gap-3 text-sm text-neutral-700" "div"
+        [
+          el "span" [ txt "Home" ];
+          Separator.make ~orientation:`vertical ();
+          el "span" [ txt "Docs" ];
+        ]
+    | _ ->
+      el ~cls:"w-64 text-sm text-neutral-700" "div"
+        [
+          el "p" [ txt "Above the line" ];
+          Separator.make ~extra_class:"my-3" ();
+          el "p" [ txt "Below the line" ];
+        ])
+  | "kbd" -> Kbd.make ~children:[ txt (get "keys") ] ()
+  | "icon" ->
+    let size : Contracts.Icon.size =
+      match get "size" with
+      | "xs" -> `xs
+      | "sm" -> `sm
+      | "lg" -> `lg
+      | "xl" -> `xl
+      | _ -> `md
+    in
+    el ~cls:"text-neutral-800" "span"
+      [ Icon.make ~name:(get "name") ~size ~label:(get "name") () ]
+  | "icon-button" ->
+    let variant : Contracts.IconButton.variant =
+      match get "variant" with "solid" -> `solid | _ -> `ghost
+    in
+    IconButton.make ~variant ~label:(get "label") ~children:[ Icon.make ~name:"edit" () ] ()
+  | "link" ->
+    let variant : Contracts.Link.variant =
+      match get "variant" with "muted" -> `muted | _ -> `default
+    in
+    Link_.make ~href:"#" ~variant ~new_tab:(is_true "newTab")
+      ~children:[ txt (get "label") ] ()
+  | "input" ->
+    el ~cls:"w-64" "div"
+      [ Input.make ~type_:(get "type") ~placeholder:(get "placeholder") () ]
+  | "textarea" ->
+    el ~cls:"w-64" "div"
+      [
+        Textarea.make ~value:(Signal.make "") ~placeholder:(get "placeholder")
+          ~rows:(int_or "rows" 4) ();
+      ]
+  | "toggle" ->
+    Toggle.make ~pressed:(Signal.make true) ~disabled:(is_true "disabled")
+      ~children:[ el ~cls:"italic" "span" [ txt "B" ] ] ()
+  | "toggle-group" ->
+    let type_ : Contracts.ToggleGroup.type_ =
+      match get "type" with "multiple" -> `multiple | _ -> `single
+    in
+    ToggleGroup.make ~type_ ~value:(Signal.make [ "center" ])
+      ~options:[ ("left", "Left"); ("center", "Center"); ("right", "Right") ]
+      ~disabled:(is_true "disabled") ()
+  | "radio-group" ->
+    let orientation : Contracts.RadioGroup.orientation =
+      match get "orientation" with "horizontal" -> `horizontal | _ -> `vertical
+    in
+    RadioGroup.make ~value:(Signal.make "express")
+      ~options:
+        [
+          ("standard", "Standard", "3\xe2\x80\x935 business days");
+          ("express", "Express", "1\xe2\x80\x932 business days");
+          ("overnight", "Overnight", "Next business day");
+        ]
+      ~legend:(get "legend") ~orientation ~disabled:(is_true "disabled")
+      ~extra_class:"max-w-sm" ()
+  | "aspect-ratio" ->
+    let ratio = get "ratio" in
+    el ~cls:"w-56" "div"
+      [
+        AspectRatio.make ~ratio ~extra_class:"rounded-lg bg-neutral-200"
+          ~children:
+            [
+              el ~cls:"flex h-full items-center justify-center text-sm font-medium text-neutral-500"
+                "div" [ txt ratio ];
+            ]
+          ();
+      ]
+  | "scroll-area" ->
+    let orientation : Contracts.ScrollArea.orientation =
+      match get "orientation" with "horizontal" -> `horizontal | "both" -> `both | _ -> `vertical
+    in
+    let rows =
+      List.init 24 (fun i ->
+          "Row " ^ string_of_int (i + 1)
+          ^ " \xe2\x80\x94 the quick brown fox jumps over the lazy dog")
+    in
+    ScrollArea.make ~orientation ~extra_class:"h-44 w-64 rounded-md border border-neutral-200"
+      ~children:
+        [
+          el ~cls:"w-max divide-y divide-neutral-100 text-sm" "ul"
+            (List.map
+               (fun r -> el ~cls:"whitespace-nowrap px-3 py-2 text-neutral-700" "li" [ txt r ])
+               rows);
+        ]
+      ()
+  | "input-otp" ->
+    InputOtp.make ~value:(Signal.make "") ~length:(int_or "length" 6)
+      ~disabled:(is_true "disabled") ()
+  | "select" ->
+    Select.make ~value:(Signal.make "Medium")
+      ~options:[ "Small"; "Medium"; "Large"; "Extra large" ] ~disabled:(is_true "disabled") ()
+  | "field" ->
+    el ~cls:"w-64" "div"
+      [
+        Field.make ~label:(get "label") ~for_:"pg-field" ~hint:(get "hint")
+          ~children:[ Input.make ~id:"pg-field" ~type_:"email" ~placeholder:"you@example.com" () ]
+          ();
+      ]
+  | "tooltip" ->
+    el ~cls:"flex h-24 items-center justify-center" "div"
+      [
+        Tooltip.make ~content:(get "content")
+          ~children:[ Button.make ~variant:`secondary ~children:[ txt "Hover me" ] () ] ();
+      ]
+  | "tabs" ->
+    let orientation : Contracts.Tabs.orientation =
+      match get "orientation" with "vertical" -> `vertical | _ -> `horizontal
+    in
+    el ~cls:"w-80" "div"
+      [
+        Tabs.make ~value:(Signal.make "account") ~orientation
+          ~tabs:[ ("account", "Account"); ("password", "Password"); ("team", "Team") ] ();
+      ]
+  | "accordion" ->
+    let type_ : Contracts.Accordion.type_ =
+      match get "type" with "multiple" -> `multiple | _ -> `single
+    in
+    el ~cls:"w-full max-w-md" "div"
+      [
+        Accordion.make ~type_ ~collapsible:(is_true "collapsible") ~value:(Signal.make [ "what" ])
+          ~items:
+            [
+              ("what", "What is a spec?", "A technology-agnostic definition of a UI pattern.");
+              ("framework", "Is it tied to a framework?", "No. Each spec maps onto any stack.");
+              ( "contribute", "Can I contribute?",
+                "Yes \xe2\x80\x94 copy the template and open a pull request." );
+            ]
+          ();
+      ]
+  | "collapsible" ->
+    Collapsible.make ~open_:(Signal.make false) ~label:(get "label")
+      ~children:[ txt "Secondary content revealed on demand, pushing the layout below it." ] ()
+  | "dialog" ->
+    let open_ = Signal.make false in
+    el ~cls:"relative flex h-64 w-full max-w-lg items-center justify-center" "div"
+      [
+        Button.make ~variant:`primary
+          ~on_click:(fun _ -> Signal.set open_ true)
+          ~children:[ txt "Open dialog" ] ();
+        Dialog.make ~open_ ~title:(get "title") ~description:(get "description")
+          ~children:
+            [
+              el ~cls:"mt-5 flex justify-end gap-2" "div"
+                [
+                  Button.make ~variant:`secondary
+                    ~on_click:(fun _ -> Signal.set open_ false)
+                    ~children:[ txt "Cancel" ] ();
+                  Button.make ~variant:`primary
+                    ~on_click:(fun _ -> Signal.set open_ false)
+                    ~children:[ txt "Save" ] ();
+                ];
+            ]
+          ();
+      ]
+  | _ -> View.empty
+
+(* ------------------------------------------------------------------ *)
 (* registry + mount entry (the JS surface consumed by the website)     *)
 (* ------------------------------------------------------------------ *)
 
@@ -1004,6 +1262,27 @@ let mount_example spec_id container_id =
     Dom.set_text_content el "";
     View.mount el (example_for spec_id)
 
+(* Mount the reativa playground for [spec_id] into [container_id], rendering it
+   from the knob values the website's control strip currently holds. [props] is
+   the knob state as (prop, value) pairs; the website re-calls this on every
+   knob change, so the component is rebuilt from scratch each time (exactly what
+   the Xote playground does when it re-instantiates its render function). *)
+let mount_playground spec_id container_id (props : (string * string) array) =
+  match Dom.by_id container_id with
+  | None -> ()
+  | Some el ->
+    let get prop =
+      let rec find i =
+        if i >= Array.length props then ""
+        else
+          let name, value = props.(i) in
+          if name = prop then value else find (i + 1)
+      in
+      find 0
+    in
+    Dom.set_text_content el "";
+    View.mount el (playground_for spec_id get)
+
 (* The spec ids that have a reativa implementation, exposed to the website so it
    knows which specs get a "Reativa" tab. *)
 let example_ids =
@@ -1017,6 +1296,18 @@ let example_ids =
     "label"; "typography"; "logo"; "legend"; "card"; "breadcrumb"; "button-group"; "input-group";
     "empty-state"; "stat"; "list"; "pagination"; "toolbar"; "footer"; "hero"; "feature-grid";
     "testimonial"; "pricing-table"; "faq"; "cta-section";
+  |]
+
+(* The spec ids [playground_for] renders — the website only offers a reativa
+   playground for these, and falls back to the plain example for the rest. Kept
+   in step with the arms above (and with the knob definitions in
+   website/src/Playground.res). *)
+let playground_ids =
+  [|
+    "button"; "badge"; "avatar"; "alert"; "checkbox"; "switch"; "slider"; "progress"; "spinner";
+    "skeleton"; "separator"; "kbd"; "icon"; "icon-button"; "link"; "input"; "textarea"; "toggle";
+    "toggle-group"; "radio-group"; "aspect-ratio"; "scroll-area"; "input-otp"; "select"; "field";
+    "tooltip"; "tabs"; "accordion"; "collapsible"; "dialog";
   |]
 
 (* Distinguishes the real compiled bundle from the checked-in placeholder. *)

@@ -28,9 +28,12 @@ by `npm run contracts`, so the OCaml compiler enforces that the implementation
 can't drift from the spec's allowed values.
 
 [`src/Registry.mlx`](src/Registry.mlx) renders one live example per spec (the
-same demos as the website's Xote examples) and exports the JS surface the
-website consumes: `mount_example(specId, containerId)`, `example_ids`, and
-`built`.
+same demos as the website's Xote examples), plus a knob-driven `playground_for`
+render of a single component per spec — the reativa side of the website's
+playground, so its props panel drives this implementation as readily as the Xote
+one. It exports the JS surface the website consumes:
+`mount_example(specId, containerId)`, `example_ids`,
+`mount_playground(specId, containerId, props)`, `playground_ids`, and `built`.
 
 ## Building
 
