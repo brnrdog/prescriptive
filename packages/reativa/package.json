@@ -1,6 +1,6 @@
 {
   "name": "@prescriptive/reativa",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Accessible UI components for Reativa (OCaml + Melange) that implement the Prescriptive contracts — the ReasonML/OCaml sibling of @prescriptive/xote. Styled against @prescriptive/tokens; prop types are generated from the spec API contracts, so the implementation can't drift from the spec.",
   "license": "MIT",
   "author": "brnrdog",
@@ -27,7 +27,7 @@
     "prepack": "npm run contracts"
   },
   "dependencies": {
-    "@prescriptive/tokens": "^0.1.0"
+    "@prescriptive/tokens": "^0.2.0"
   },
   "repository": {
     "type": "git",

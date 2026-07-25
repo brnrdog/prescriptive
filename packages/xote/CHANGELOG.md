@@ -1,5 +1,12 @@
 # @prescriptive/xote
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies [e646367]
+  - @prescriptive/tokens@0.2.0
+
 ## 0.2.0
 
 ### Minor Changes

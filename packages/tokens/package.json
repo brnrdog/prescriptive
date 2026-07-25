@@ -1,6 +1,6 @@
 {
   "name": "@prescriptive/tokens",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Design tokens for Prescriptive — CSS custom properties, a Tailwind v4 preset, theme overlays, and a typed JS export. Generated from the framework's W3C DTCG tokens.",
   "license": "MIT",
   "author": "brnrdog",

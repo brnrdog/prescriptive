@@ -1,6 +1,6 @@
 {
   "name": "@prescriptive/skill",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "The Prescriptive Agent Skill — UI specs, traits, design tokens, and the responsive vocabulary compiled into a reference an AI coding agent loads to implement UI to the contracts.",
   "license": "MIT",
   "author": "brnrdog",

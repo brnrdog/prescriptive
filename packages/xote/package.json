@@ -1,6 +1,6 @@
 {
   "name": "@prescriptive/xote",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Accessible UI components for Xote/ReScript that implement the Prescriptive contracts. Styled against @prescriptive/tokens; prop types are generated from the spec API contracts, so the implementation can't drift from the spec.",
   "license": "MIT",
   "author": "brnrdog",
@@ -32,7 +32,7 @@
     "xote": ">=7.0.0"
   },
   "dependencies": {
-    "@prescriptive/tokens": "^0.1.0"
+    "@prescriptive/tokens": "^0.2.0"
   },
   "repository": {
     "type": "git",
