@@ -86,14 +86,29 @@ touching a single spec or component.
 
 [`themes.json`](./themes.json) ships ready-made themes and light/dark modes.
 
-- **Themes** (`themes` array) carry the palette identity — accent, status,
-  radius, font, and a light-mode tint of the neutral ramp — as a map of token
-  path → value. Included: `monochrome`, `indigo`, `forest`, `editorial`,
-  `terminal`, `sunset`, `vibrant`, `ocean`, `coral`.
+- **Themes** (`themes` array) carry the palette identity — the full neutral ramp,
+  one accent, status colors, a categorical chart set, radii, type, and shadows —
+  as a map of token path → value. Included: `monochrome`, `graphite`, `indigo`,
+  `azure`, `ocean`, `forest`, `violet`, `plum`, `coral`, `sunset`, `editorial`,
+  `terminal`. Each carries a one-line `description` of what it is for.
 - **Modes** (`modes` object) are orthogonal light/dark variants applied on top of
-  *any* theme. `dark` inverts the neutral ramp so surfaces go dark and text
-  light, while the theme's accent/status/radius/font are preserved — so every
+  *any* theme. `dark` swaps in a dark ramp — with `surface` a step *above* `paper`
+  so cards read as raised — and re-tunes status colors and shadows for a dark
+  page, while the theme's radii and font are preserved; each theme's own `dark`
+  block then re-tints those surfaces to its hue and lifts its accent. So every
   theme has a coherent dark variant for free.
+
+The palettes follow one rule: **ramps stay close to gray, and saturation is spent
+on the accent, status, and chart roles.** A theme's hue survives in its ramp only
+as a faint tint (a few percent of chroma), so surfaces and text read as neutral
+and the accent is the only loud thing on the page — the way current product UIs
+are built. Ramps are generated in OKLCH on a shared lightness ladder, so every
+theme has the same contrast structure, and every pair a component depends on
+(ink/paper, muted/surface, label/accent fill, status/paper, series/paper) meets
+WCAG AA. The one deliberate exception: on a dark page `status.danger` sits bright
+enough to read as text (4.5:1), which leaves a white label on a danger *fill* at
+~3.9:1 — AA for UI text at that size, and the better trade for the role's most
+common use.
 
 The website's picker is generated from this file
 (`website/scripts/generate-themes.mjs`), and every theme and mode override path
