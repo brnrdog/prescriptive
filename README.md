@@ -90,10 +90,16 @@ derived, consumable artifacts live under [`packages/`](packages/):
 | **`prescriptive`** (root) | The spec catalogue + design tokens — the source of truth every package below is generated from. |
 | **[`@prescriptive/tokens`](packages/tokens)** | The design tokens as ready-to-use artifacts: CSS custom properties, a **Tailwind v4 preset**, `[data-theme]`/`[data-mode]` overlays, and a typed JS export. |
 | **[`@prescriptive/xote`](packages/xote)** | Accessible [Xote](https://xote.dev)/ReScript components implementing the specs. Their prop types are generated from each spec's `## API`, so the compiler enforces they can't drift. Styled via `@prescriptive/tokens`. |
+| **[`@prescriptive/reativa`](packages/reativa)** | The same catalogue implemented for [reativa](https://github.com/brnrdog/reativa) (OCaml + Melange) — the ReasonML/OCaml sibling of `@prescriptive/xote`. Written in `.mlx` over `Reativa.View` (no virtual DOM), prop types likewise generated from each spec's `## API`, styled via `@prescriptive/tokens`. |
 | **[`skill/`](skill/)** | An **Agent Skill** — the specs, traits, tokens, and responsive vocabulary compiled into a reference an AI coding agent loads to implement UI to the contracts. |
 
 Each package is generated from the framework source, so nothing downstream can
 drift from the specs. See each package's README for usage.
+
+`@prescriptive/reativa` builds through Melange and so needs an OCaml toolchain
+(opam switch on OCaml 5.1+); it is kept out of `npm run build:packages` for that
+reason and built on its own (`npm run build --workspace @prescriptive/reativa`),
+which CI does. See [`packages/reativa/README.md`](packages/reativa/README.md).
 
 ---
 
@@ -140,7 +146,8 @@ prescriptive/                        # root workspace = the `prescriptive` spec 
 ├── skill/                    # the distributable Agent Skill
 ├── packages/
 │   ├── tokens/               # @prescriptive/tokens  (CSS vars, Tailwind preset, JS)
-│   └── xote/                 # @prescriptive/xote    (Xote/ReScript components)
+│   ├── xote/                 # @prescriptive/xote    (Xote/ReScript components)
+│   └── reativa/              # @prescriptive/reativa (reativa/OCaml + Melange components)
 ├── website/                  # interactive catalogue (Vite + ReScript + Xote)
 ├── INDEX.md                  # generated registry of every spec
 └── CHANGELOG.md
@@ -163,10 +170,13 @@ CSS variables, a Tailwind preset, or a JS object via
 ## Website
 
 An interactive catalogue lives in [`website/`](website/): it lists every spec,
-renders a **live example** of each (composed from `@prescriptive/xote`), shows the API
-contract and responsive behavior, and lets you retheme the whole site live from
-the design tokens. Built with Vite, ReScript, [Xote](https://xote.dev), and
-Tailwind CSS. See [`website/README.md`](website/README.md) to run it.
+renders a **live example** of each, shows the API contract and responsive
+behavior, and lets you retheme the whole site live from the design tokens. Each
+example can be switched between the two **implementations** — `@prescriptive/xote`
+(ReScript) and `@prescriptive/reativa` (OCaml) — so you can compare the rendered
+result and the source side by side. Built with Vite, ReScript,
+[Xote](https://xote.dev), and Tailwind CSS. See
+[`website/README.md`](website/README.md) to run it.
 
 ## Contributing
 
