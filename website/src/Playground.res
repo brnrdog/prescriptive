@@ -507,11 +507,15 @@ let get = (id: string): option<def> =>
 
 // ------------------------------------------------------------------- Panel --
 // The playground UI: a live preview that re-instantiates on every knob change,
-// above a control strip generated from the knob definitions.
+// above a control strip generated from the knob definitions. The preview renders
+// whichever implementation is selected — the Xote `render` above, or the reativa
+// one mounted into a container the reativa runtime owns (`useReativa`). The
+// knobs are shared: both implementations read the same knob state, so switching
+// implementations keeps the props you dialed in.
 
 module Panel = {
   @jsx.component
-  let make = (~def: def) => {
+  let make = (~id: string, ~def: def, ~useReativa: Signal.t<bool>) => {
     let initial = def.knobs->Array.map(k => (k.prop, k.init))
     let state = Signal.make(initial)
     let valueOf = (vals, prop) =>
@@ -522,13 +526,29 @@ module Panel = {
     let setKnob = (prop, v) =>
       Signal.update(state, vals => vals->Array.map(((n, old)) => n == prop ? (n, v) : (n, old)))
     let current = prop => Computed.make(() => valueOf(Signal.get(state), prop))
+    // Re-mount the reativa playground on every knob change (and when it becomes
+    // the selected implementation) — reativa rebuilds the component from the
+    // knob values, the way `View.Value` re-instantiates the Xote render below.
+    let reativaKnobs = ReativaExamples.built && ReativaExamples.hasPlayground(id)
+    Effect.run(() => {
+      let vals = Signal.get(state)
+      if Signal.get(useReativa) && reativaKnobs {
+        ReativaExamples.mountPlayground(id, vals)
+      }
+      None
+    })
     <div>
       <div
         class="preview-surface flex min-h-48 items-center justify-center rounded-t-2xl border border-neutral-200 p-10 shadow-sm">
-        <View.Value
-          value={Prop.signal(state)}
-          render={vals => def.render(prop => valueOf(vals, prop))}
-        />
+        <View.Show
+          when_={Prop.signal(useReativa)}
+          fallback={<View.Value
+            value={Prop.signal(state)}
+            render={vals => def.render(prop => valueOf(vals, prop))}
+          />}>
+          // The reativa runtime mounts the knob-driven component here.
+          <div id={ReativaExamples.playgroundContainerId(id)} />
+        </View.Show>
       </div>
       <div class="rounded-b-2xl border border-t-0 border-neutral-200 bg-neutral-50 p-4">
         <div class="mb-3 flex items-center justify-between">

@@ -1,7 +1,8 @@
 ; Compiles the reativa component sources (this directory's *.mlx / *.ml) to
 ; JavaScript ES modules under output/. The emitted entry (output/Registry.js)
-; re-exports mount_example / example_ids / built and is bundled for the browser
-; with esbuild by `node scripts/build.mjs`; see README.md.
+; re-exports mount_example / example_ids / mount_playground / playground_ids /
+; built and is bundled for the browser with esbuild by `node scripts/build.mjs`;
+; see README.md.
 ;
 ; This dune file is copied, together with the src/ modules, into a subdirectory
 ; of a pinned clone of the reativa repo (which ships the private `reativa`

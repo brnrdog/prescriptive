@@ -22,6 +22,16 @@ export const example_ids = [
   "tabs", "tooltip", "announcement-bar", "contact-section", "logo-cloud",
   "newsletter", "page-header", "stat-grid", "steps",
 ];
+export const playground_ids = [
+  "button", "badge", "avatar", "alert", "checkbox", "switch", "slider", "progress",
+  "spinner", "skeleton", "separator", "kbd", "icon", "icon-button", "link", "input",
+  "textarea", "toggle", "toggle-group", "radio-group", "aspect-ratio", "scroll-area",
+  "input-otp", "select", "field", "tooltip", "tabs", "accordion", "collapsible",
+  "dialog",
+];
 export function mount_example(_specId, _containerId) {
+  /* no-op until the Melange bundle is built */
+}
+export function mount_playground(_specId, _containerId, _props) {
   /* no-op until the Melange bundle is built */
 }

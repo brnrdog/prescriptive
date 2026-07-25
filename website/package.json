@@ -6,6 +6,7 @@
   "scripts": {
     "registry": "node scripts/generate-registry.mjs",
     "snippets": "node scripts/generate-snippets.mjs",
+    "snippets:reativa": "node scripts/generate-reativa-source.mjs",
     "contracts": "node ../packages/xote/scripts/generate-contracts.mjs",
     "traits": "node scripts/generate-traits.mjs",
     "tokens": "node scripts/generate-tokens-css.mjs",
@@ -18,7 +19,7 @@
     "conformance:tokens": "node scripts/check-tokens.mjs",
     "conformance:responsive": "node scripts/check-responsive.mjs",
     "checks": "npm run conformance && npm run conformance:traits && npm run conformance:composition && npm run conformance:tokens && npm run conformance:responsive",
-    "gen": "npm run tokens && npm run tokens:data && npm run themes && npm run responsive && npm run contracts && npm run registry && npm run traits && npm run snippets",
+    "gen": "npm run tokens && npm run tokens:data && npm run themes && npm run responsive && npm run contracts && npm run registry && npm run traits && npm run snippets && npm run snippets:reativa",
     "res:build": "rescript",
     "res:clean": "rescript clean",
     "res:dev": "rescript -w",

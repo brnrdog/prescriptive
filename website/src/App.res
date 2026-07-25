@@ -647,86 +647,104 @@ module NotFound = {
 module ExampleBlock = {
   @jsx.component
   let make = (~a: spec) => {
-    // Two independent tab strips: `view` picks the representation
-    // (preview / playground / code); `impl` picks which implementation renders
-    // in the preview (Xote or reativa). Code/playground stay Xote-only.
-    let view = Signal.make("preview")
+    // One live surface per spec, plus its source on demand. A single strip picks
+    // the implementation (Xote or reativa) and everything follows it: the
+    // preview, the playground knobs that drive it, and the source shown below.
+    // Specs with a playground get the knob-driven preview right in the surface —
+    // the preview and the playground are the same thing, never two tabs.
     let impl = Signal.make("xote")
+    let showCode = Signal.make(false)
     let copied = Signal.make(false)
     let full = Signal.make(false)
-    let snippet = ExampleSource.get(a.id)
     let hasExample = Examples.get(a.id)->Option.isSome
     let hasReativa = ReativaExamples.has(a.id)
     let playground = Playground.get(a.id)
-    // Segmented-control button classes, driven by the given signal + target.
-    let segCls = (get, target) =>
+    // Xote is the default, and the only choice for a spec with no reativa
+    // implementation.
+    let isXote = Computed.make(() => !hasReativa || Signal.get(impl) == "xote")
+    let isReativa = Computed.make(() => !Signal.get(isXote))
+    // The source of whichever implementation is selected.
+    let source = Computed.make(() =>
+      (Signal.get(isXote) ? ExampleSource.get(a.id) : ReativaSource.get(a.id))->Option.getOr("")
+    )
+    let hasSource =
+      ExampleSource.get(a.id)->Option.isSome || ReativaSource.get(a.id)->Option.isSome
+    let sourceMissing = Computed.make(() => Signal.get(source) == "")
+    let sourceLang = Computed.make(() => Signal.get(isXote) ? "ReScript · Xote" : "OCaml · reativa")
+    // A knob-driven preview needs the selected implementation to have a
+    // playground — reativa's also needs its bundle to be built.
+    let knobDriven = Computed.make(() =>
+      switch playground {
+      | None => false
+      | Some(_) =>
+        Signal.get(isXote) || (ReativaExamples.built && ReativaExamples.hasPlayground(a.id))
+      }
+    )
+    // Otherwise the surface shows the spec's plain example, for the selected
+    // implementation.
+    let plainXote = Computed.make(() => !Signal.get(knobDriven) && Signal.get(isXote))
+    let plainReativa = Computed.make(() => !Signal.get(knobDriven) && Signal.get(isReativa))
+    // The playground is shown/hidden by class rather than by `View.Show`: a
+    // component node is lazy, so re-rendering it would rebuild the panel and
+    // throw away the props you dialed in when switching implementations.
+    let panelCls = Computed.make(() => Signal.get(knobDriven) ? "" : "hidden")
+    // Segmented-control button classes for the implementation strip.
+    let implCls = target =>
       Computed.make(() =>
         "rounded-md px-3 py-1 text-xs font-medium transition-colors " ++ (
-          get() == target ? "bg-action text-on-action" : "text-neutral-600 hover:text-neutral-900"
+          Signal.get(impl) == target
+            ? "bg-action text-on-action"
+            : "text-neutral-600 hover:text-neutral-900"
         )
       )
-    let viewCls = target => segCls(() => Signal.get(view), target)
-    let implCls = target => segCls(() => Signal.get(impl), target)
-    let isCode = Computed.make(() => Signal.get(view) == "code")
-    let isPlay = Computed.make(() => Signal.get(view) == "play")
-    // In Preview, the implementation strip picks which library renders: Xote by
-    // default (or whenever there's no reativa build), reativa when selected.
-    let xotePreview = Computed.make(() =>
-      Signal.get(view) == "preview" && (!hasReativa || Signal.get(impl) == "xote")
-    )
-    let reativaPreview = Computed.make(() =>
-      hasReativa && Signal.get(view) == "preview" && Signal.get(impl) == "reativa"
-    )
+    // Fullscreen renders the Xote example, so offer it only for that one.
+    let canFullscreen = Computed.make(() => hasExample && Signal.get(isXote))
     // Close fullscreen on Escape while it is open.
     Effect.run(() => Signal.get(full) ? Some(Ui.onEscape(() => Signal.set(full, false))) : None)
-    // While the reativa preview is showing, imperatively mount the OCaml/Melange
-    // example into its container (the reativa runtime owns that subtree).
+    // While the plain reativa example is showing, imperatively mount the
+    // OCaml/Melange example into its container (the reativa runtime owns that
+    // subtree).
     Effect.run(() => {
-      if Signal.get(reativaPreview) && ReativaExamples.built {
+      if Signal.get(plainReativa) && ReativaExamples.built {
         ReativaExamples.mount(a.id)
       }
       None
     })
     <div class="mt-10">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
-            <button class={Prop.signal(viewCls("preview"))} onClick={_ => Signal.set(view, "preview")}>
-              <View.Text> "Preview" </View.Text>
-            </button>
-            {switch playground {
-            | Some(_) =>
-              <button class={Prop.signal(viewCls("play"))} onClick={_ => Signal.set(view, "play")}>
-                <View.Text> "Playground" </View.Text>
+        {hasReativa
+          ? <div class="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
+              <button class={Prop.signal(implCls("xote"))} onClick={_ => Signal.set(impl, "xote")}>
+                <View.Text> "Xote" </View.Text>
               </button>
-            | None => View.null()
-            }}
-            {switch snippet {
-            | Some(_) =>
-              <button class={Prop.signal(viewCls("code"))} onClick={_ => Signal.set(view, "code")}>
-                <View.Text> "Code" </View.Text>
+              <button
+                class={Prop.signal(implCls("reativa"))} onClick={_ => Signal.set(impl, "reativa")}>
+                <View.Text> "Reativa" </View.Text>
               </button>
-            | None => View.null()
-            }}
-          </div>
-          {hasReativa
-            ? <div class="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-0.5">
-                <button class={Prop.signal(implCls("xote"))} onClick={_ => Signal.set(impl, "xote")}>
-                  <View.Text> "Xote" </View.Text>
-                </button>
-                <button class={Prop.signal(implCls("reativa"))} onClick={_ => Signal.set(impl, "reativa")}>
-                  <View.Text> "Reativa" </View.Text>
-                </button>
-              </div>
-            : View.null()}
-        </div>
+            </div>
+          : View.null()}
         <div class="flex items-center gap-3">
-          {hasExample
-            ? <Button variant=#secondary size=#sm onClick={_ => Signal.set(full, true)}>
-                <Icon name="maximize" size=#sm />
-                <View.Text> "Fullscreen" </View.Text>
+          {hasSource
+            ? <Button variant=#secondary size=#sm onClick={_ => Signal.update(showCode, v => !v)}>
+                <View.Show
+                  when_={Prop.signal(showCode)}
+                  fallback={<span class="inline-flex items-center gap-1.5">
+                    <Icon name="chevron-down" size=#sm />
+                    <View.Text> "Show source" </View.Text>
+                  </span>}>
+                  <span class="inline-flex items-center gap-1.5">
+                    <Icon name="chevron-up" size=#sm />
+                    <View.Text> "Hide source" </View.Text>
+                  </span>
+                </View.Show>
               </Button>
             : View.null()}
+          <View.Show when_={Prop.signal(canFullscreen)}>
+            <Button variant=#secondary size=#sm onClick={_ => Signal.set(full, true)}>
+              <Icon name="maximize" size=#sm />
+              <View.Text> "Fullscreen" </View.Text>
+            </Button>
+          </View.Show>
           <a
             class="text-xs text-neutral-400 underline underline-offset-4 hover:text-neutral-700"
             href={docUrl(a)}
@@ -736,11 +754,18 @@ module ExampleBlock = {
           </a>
         </div>
       </div>
-      <View.Show when_={Prop.signal(xotePreview)}>
+      {switch playground {
+      | Some(def) =>
+        <div class={Prop.signal(panelCls)}>
+          <Playground.Panel id={a.id} def useReativa={isReativa} />
+        </div>
+      | None => View.null()
+      }}
+      <View.Show when_={Prop.signal(plainXote)}>
         <Preview id={a.id} />
       </View.Show>
       {hasReativa
-        ? <View.Show when_={Prop.signal(reativaPreview)}>
+        ? <View.Show when_={Prop.signal(plainReativa)}>
             {ReativaExamples.built
               ? // The reativa runtime mounts the OCaml/Melange example here.
                 <div class="preview-surface flex min-h-48 items-center justify-center rounded-2xl border border-neutral-200 p-10 shadow-sm">
@@ -758,46 +783,48 @@ module ExampleBlock = {
                 </div>}
           </View.Show>
         : View.null()}
-      {switch playground {
-      | Some(def) =>
-        <View.Show when_={Prop.signal(isPlay)}>
-          <Playground.Panel def />
-        </View.Show>
-      | None => View.null()
-      }}
-      {switch snippet {
-      | Some(code) =>
-        <View.Show when_={Prop.signal(isCode)}>
-          <div class="relative">
-            <button
-              class="absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-lg border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 transition-colors hover:bg-neutral-700"
-              onClick={_ => {
-                Ui.copyToClipboard(code)
-                Signal.set(copied, true)
-                Ui.setTimeout(() => Signal.set(copied, false), 1500)
-              }}>
-              <View.Show
-                when_={Prop.signal(copied)}
-                fallback={<span class="inline-flex items-center gap-1">
-                  <Icon name="copy" size=#xs />
-                  <View.Text> "Copy" </View.Text>
-                </span>}>
-                <Icon name="check" size=#xs />
-                <View.Text> "Copied" </View.Text>
-              </View.Show>
-            </button>
-            <pre
-              class="max-h-[32rem] overflow-auto rounded-2xl border border-neutral-800 bg-neutral-900 p-4 text-xs leading-relaxed text-neutral-100">
-              <code class="font-mono"> <View.Text> {code} </View.Text> </code>
-            </pre>
-          </div>
-        </View.Show>
-      | None => View.null()
-      }}
+      {hasSource
+        ? <View.Show when_={Prop.signal(showCode)}>
+            <div class="relative mt-3">
+              <div class="absolute left-4 top-3 z-10 font-mono text-[11px] text-neutral-500">
+                <View.Text> {sourceLang} </View.Text>
+              </div>
+              <button
+                class="absolute right-2 top-2 z-10 inline-flex items-center gap-1 rounded-lg border border-neutral-700 bg-neutral-800 px-2 py-1 text-xs text-neutral-200 transition-colors hover:bg-neutral-700"
+                onClick={_ => {
+                  Ui.copyToClipboard(Signal.get(source))
+                  Signal.set(copied, true)
+                  Ui.setTimeout(() => Signal.set(copied, false), 1500)
+                }}>
+                <View.Show
+                  when_={Prop.signal(copied)}
+                  fallback={<span class="inline-flex items-center gap-1">
+                    <Icon name="copy" size=#xs />
+                    <View.Text> "Copy" </View.Text>
+                  </span>}>
+                  <Icon name="check" size=#xs />
+                  <View.Text> "Copied" </View.Text>
+                </View.Show>
+              </button>
+              <pre
+                class="max-h-[32rem] overflow-auto rounded-2xl border border-neutral-800 bg-neutral-900 p-4 pt-9 text-xs leading-relaxed text-neutral-100">
+                <code class="font-mono">
+                  <View.Show
+                    when_={Prop.signal(sourceMissing)}
+                    fallback={<View.Text> {source} </View.Text>}>
+                    <View.Text>
+                      "No source for this implementation yet — switch implementations to see the other one."
+                    </View.Text>
+                  </View.Show>
+                </code>
+              </pre>
+            </div>
+          </View.Show>
+        : View.null()}
       <View.Show when_={Prop.signal(full)}>
         <div class="fixed inset-0 z-50 flex flex-col bg-surface">
           <div class="flex h-14 shrink-0 items-center justify-between border-b border-neutral-200 px-4">
-            <span class="text-sm font-medium text-neutral-900"> <View.Text> {a.title ++ " — live preview"} </View.Text> </span>
+            <span class="text-sm font-medium text-neutral-900"> <View.Text> {a.title ++ " — example"} </View.Text> </span>
             <Button variant=#secondary size=#sm onClick={_ => Signal.set(full, false)}>
               <Icon name="x" size=#sm />
               <View.Text> "Close" </View.Text>

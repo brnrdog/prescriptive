@@ -30,10 +30,16 @@ src/SpecsData.res        generated, typed list of every spec
 src/Examples.res              a live Xote component per spec (`get`)
         │  scripts/generate-snippets.mjs    (npm run snippets)
         ▼
-src/ExampleSource.res         each example's source, shown in the Code tab
+src/ExampleSource.res         each example's Xote source, shown under the preview
+        │
+        │  ../packages/reativa/src (Registry.mlx + components)
+        │  scripts/generate-reativa-source.mjs  (npm run snippets:reativa)
+        ▼
+src/ReativaSource.res         the same examples' reativa (OCaml) source
         │
         ▼
-src/App.res                   sidebar + router (Xote Router) + Preview/Code
+src/App.res                   sidebar + router (Xote Router) + the example block
+src/Playground.res            per-spec knobs + the live, knob-driven preview
 src/{Button,Badge,Input,Field,Avatar,Switch,Spinner,Kbd,Separator,Backdrop,
      Link,IconButton}.res     reusable components, one per file, referenced
                               directly as <Button/> etc.
@@ -41,14 +47,14 @@ src/Ui.res                    shared monochrome class tokens + helpers
 src/Main.res                  entry: Router.init + View.mountById
 ```
 
-The three `gen` steps (`npm run gen` = tokens + registry + snippets) run before
-every build. Each **reusable component lives in its own file** and is used
+The `gen` steps (`npm run gen` = tokens + registry + snippets) run before every
+build. Each **reusable component lives in its own file** and is used
 directly — `Card`, `Dialog`, `Form`, `Navbar`, … compose the very same
 `<Button>` (reused by ~18 examples), `<Badge>`, `<Input>`, `<Field>`,
 `<Backdrop>`, etc., rather than re-implementing them. Element example pages are
-thin showcases (`ButtonEx`, `BadgeEx`, …) built from the same components. The
-Code tab prepends the component sources an example composes, so each snippet
-stays self-contained and shows the reuse.
+thin showcases (`ButtonEx`, `BadgeEx`, …) built from the same components. Both
+source generators prepend the component sources an example composes, so each
+snippet stays self-contained and shows the reuse.
 
 The **registry generator** reads the spec markdown frontmatter (plus the
 first paragraph of each `## Intent`) and emits `src/SpecsData.res`. That
@@ -58,15 +64,26 @@ Each spec's example is a small self-contained Xote component in
 `Examples.res`; `Examples.get(id)` maps a spec `id` to its rendered node.
 Specs without an example fall back to a graceful placeholder.
 
+## The example block
+
+Each detail page shows **one live surface**, never a preview/playground split:
+where a spec declares knobs in `Playground.res`, the preview *is* the
+knob-driven component with its props panel underneath; where it doesn't, the
+preview is the spec's example. A single strip picks the implementation, and
+everything on the page follows it — the preview, the knobs that drive it, and
+the source shown by **Show source** (Xote's ReScript or reativa's OCaml).
+
 ## Xote / Reativa implementations
 
 Every element, component, and block that `@prescriptive/xote` implements is **also**
 implemented in OCaml with [reativa](https://github.com/brnrdog/reativa) — the
 signal-based sibling of Xote — in the
-[`@prescriptive/reativa`](../packages/reativa) package. The example block has two tab
-strips: one picks the **view** (Preview / Playground / Code) and one picks the
-**implementation** rendered in the preview (**Xote** or **Reativa**), so the two
-render the same spec from the same design tokens, side by side.
+[`@prescriptive/reativa`](../packages/reativa) package. One strip picks the
+**implementation** — **Xote** or **Reativa** — and the whole block follows it, so
+either library renders the same spec from the same design tokens, driven by the
+same knobs, with its own source a click away. Switching keeps the props you
+dialed in. A spec whose reativa implementation has no playground arm (or whose
+bundle isn't built) falls back to its plain reativa example.
 
 The reativa build is a self-contained Melange workspace, kept **separate** from
 this ReScript/Vite build (it needs opam + melange, the website doesn't).
