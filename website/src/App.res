@@ -219,15 +219,22 @@ module TraitsGroup = {
 module Sidebar = {
   @jsx.component
   let make = () => {
-    let cls = Computed.make(() =>
+    // The rail is mounted once for the whole session and every state it has —
+    // hidden on the landing page, collapsed, open — is expressed as a class.
+    // Gating it on `View.Show` instead would rebuild its DOM on every
+    // navigation (the condition re-renders its children whenever the route
+    // signal fires, even when the condition itself is unchanged), and a rebuilt
+    // <nav> starts back at scrollTop 0.
+    let cls = Computed.make(() => {
       // Mobile: fixed drawer that slides in from the left below the topbar.
       // Desktop (lg): an in-flow rail that collapses its width.
-      "fixed bottom-0 left-0 top-14 z-40 w-64 shrink-0 overflow-hidden border-r border-neutral-200 bg-neutral-50 transition-transform duration-200 ease-out lg:static lg:top-0 lg:transition-[width] " ++ (
-        Signal.get(sidebarOpen)
-          ? "translate-x-0 lg:w-64"
-          : "-translate-x-full lg:w-0 lg:translate-x-0"
-      )
-    )
+      let base = "fixed bottom-0 left-0 top-14 z-40 w-64 shrink-0 overflow-hidden border-r border-neutral-200 bg-neutral-50 transition-transform duration-200 ease-out lg:static lg:top-0 lg:transition-[width] "
+      let state = Signal.get(sidebarOpen)
+        ? "translate-x-0 lg:w-64"
+        : "-translate-x-full lg:w-0 lg:translate-x-0"
+      let landing = Signal.get(Router.location()).pathname == "/"
+      landing ? "hidden " ++ base ++ state : base ++ state
+    })
     <aside class={Prop.signal(cls)}>
       <nav class="h-full w-64 overflow-y-auto p-2">
         {
@@ -1070,14 +1077,13 @@ let make = () => {
   ])
   // The docs rail (and its mobile scrim) belong to the catalogue, not to the
   // landing page.
-  let docs = notLanding()
   let scrim = Computed.make(() =>
     Signal.get(sidebarOpen) && Signal.get(Router.location()).pathname != "/"
   )
   <div class="flex h-screen flex-col">
     <Topbar />
     <div class="flex min-h-0 flex-1">
-      <View.Show when_={Prop.signal(docs)}> <Sidebar /> </View.Show>
+      <Sidebar />
       // Dim the page behind the mobile drawer.
       <View.Show when_={Prop.signal(scrim)}>
         <div
