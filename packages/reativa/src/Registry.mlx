@@ -17,6 +17,18 @@ open Reativa.View.Mlx
 
 let txt s = View.text (View.static s)
 
+(* A terse [View.element] wrapper for the inline example compositions below —
+   the OCaml counterpart of the plain markup the Xote examples write as JSX. It
+   attaches an optional [cls] (className) plus any extra [attrs]/[events] to a
+   tag with children, so demos that are pure structure (a card, a footer, a
+   pricing table) read close to their Xote twins without a dedicated component
+   module. Tags that aren't reused elsewhere (h1, table, blockquote, …) go
+   through this rather than JSX so they never depend on which tag helpers the
+   mlx layer happens to expose. *)
+let el ?(cls = "") ?(attrs = []) ?(events = []) tag children =
+  let attrs = if cls = "" then attrs else View.Attr.className (View.static cls) :: attrs in
+  View.element ~attrs ~events tag children
+
 (* ------------------------------------------------------------------ *)
 (* elements                                                            *)
 (* ------------------------------------------------------------------ *)
@@ -458,6 +470,466 @@ let announcement_bar_example () =
   </div>
 
 (* ------------------------------------------------------------------ *)
+(* batch one — elements                                                *)
+(* ------------------------------------------------------------------ *)
+
+let label_example () =
+  el ~cls:"max-w-sm space-y-1" "div"
+    [
+      el ~cls:Ui.label ~attrs:[ View.Attr.make "for" (View.static "ex-label") ] "label"
+        [ txt "Full name "; el ~cls:"text-neutral-400" "span" [ txt "(required)" ] ];
+      Input.make ~id:"ex-label" ~placeholder:"Ada Lovelace" ();
+    ]
+
+let typography_example () =
+  el ~cls:"max-w-prose space-y-3" "div"
+    [
+      el ~cls:"text-3xl font-bold tracking-tight text-neutral-900" "h1" [ txt "Heading one" ];
+      el ~cls:"text-xl font-semibold text-neutral-900" "h2" [ txt "Heading two" ];
+      el ~cls:"text-sm leading-relaxed text-neutral-700" "p"
+        [
+          txt "Body copy sets the reading rhythm. Inline elements like ";
+          el ~cls:"font-semibold text-neutral-900" "strong" [ txt "strong" ];
+          txt " and ";
+          el ~cls:"rounded bg-neutral-100 px-1 py-0.5 font-mono text-xs" "code" [ txt "code" ];
+          txt " carry meaning through markup, not styling alone.";
+        ];
+      el ~cls:"border-l-2 border-neutral-300 pl-4 text-sm italic text-neutral-600" "blockquote"
+        [ txt "Type is the connective tissue of the interface." ];
+    ]
+
+let logo_example () =
+  el ~cls:"flex flex-wrap items-center gap-8" "div"
+    [
+      el ~cls:"flex items-center gap-2" "div"
+        [
+          el
+            ~cls:
+              "flex size-8 items-center justify-center rounded-md bg-neutral-900 text-sm font-bold text-neutral-0"
+            "span" [ txt "U" ];
+          el ~cls:"text-lg font-semibold tracking-tight text-neutral-900" "span" [ txt "Untitled" ];
+        ];
+      el
+        ~cls:
+          "flex size-9 items-center justify-center rounded-lg bg-neutral-900 font-bold text-neutral-0"
+        "span" [ txt "U" ];
+      el ~cls:"text-xl font-bold tracking-tight text-neutral-900" "span" [ txt "ACME" ];
+    ]
+
+let legend_example () =
+  let series =
+    [ ("Revenue", "bg-neutral-900"); ("Costs", "bg-neutral-400"); ("Profit", "bg-neutral-600") ]
+  in
+  el ~cls:"flex items-center gap-5 text-sm text-neutral-700" "div"
+    (List.map
+       (fun (label, swatch) ->
+         el ~cls:"flex items-center gap-2" "div"
+           [ el ~cls:("size-3 rounded-sm " ^ swatch) "span" []; txt label ])
+       series)
+
+(* ------------------------------------------------------------------ *)
+(* batch one — components                                              *)
+(* ------------------------------------------------------------------ *)
+
+let card_example () =
+  el ~cls:(Ui.card ^ " w-80 overflow-hidden") "div"
+    [
+      el ~cls:"flex aspect-video items-center justify-center bg-neutral-100 text-neutral-400" "div"
+        [ txt "cover" ];
+      el ~cls:"space-y-3 p-5" "div"
+        [
+          el ~cls:"flex items-center justify-between" "div"
+            [
+              el ~cls:"font-semibold text-neutral-900" "h3" [ txt "Analytics plan" ];
+              Badge.make ~variant:`solid ~children:[ txt "Pro" ] ();
+            ];
+          el ~cls:"text-sm text-neutral-500" "p"
+            [ txt "Usage insights, exports, and unlimited dashboards for growing teams." ];
+          el ~cls:"flex gap-2 pt-1" "div"
+            [
+              Button.make ~variant:`primary ~children:[ txt "Upgrade" ] ();
+              Button.make ~variant:`ghost ~children:[ txt "Details" ] ();
+            ];
+        ];
+    ]
+
+let breadcrumb_example () =
+  let sep () = el ~cls:"text-neutral-300" "span" [ txt "/" ] in
+  let crumb label =
+    el ~cls:"text-neutral-500 hover:text-neutral-900"
+      ~attrs:[ View.Attr.href (View.static "#") ] "a" [ txt label ]
+  in
+  el ~cls:"flex items-center gap-2 text-sm"
+    ~attrs:[ View.Attr.make "aria-label" (View.static "Breadcrumb") ] "nav"
+    [
+      crumb "Home";
+      sep ();
+      crumb "Projects";
+      sep ();
+      el ~cls:"font-medium text-neutral-900" "span" [ txt "Specs" ];
+    ]
+
+let button_group_example () =
+  let seg extra label =
+    el ~cls:("bg-surface px-3 py-2 text-sm hover:bg-neutral-100" ^ extra) "button" [ txt label ]
+  in
+  el ~cls:"inline-flex overflow-hidden rounded-md border border-neutral-300" "div"
+    [
+      seg " border-r border-neutral-300" "Bold";
+      seg " border-r border-neutral-300" "Italic";
+      seg "" "Underline";
+    ]
+
+let input_group_example () =
+  el ~cls:"flex max-w-sm" "div"
+    [
+      el
+        ~cls:
+          "inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 \
+           px-3 text-sm text-neutral-500"
+        "span" [ txt "https://" ];
+      Input.make ~extra_class:"rounded-none" ~placeholder:"example.com" ();
+      Button.make ~variant:`primary ~extra_class:"rounded-l-none" ~children:[ txt "Go" ] ();
+    ]
+
+let empty_state_example () =
+  el
+    ~cls:
+      "flex max-w-sm flex-col items-center gap-3 rounded-lg border border-dashed border-neutral-300 \
+       p-10 text-center"
+    "div"
+    [
+      el ~cls:"flex size-12 items-center justify-center rounded-full bg-neutral-100 text-neutral-400"
+        "div" [ Icon.make ~name:"inbox" ~size:`lg () ];
+      el "div"
+        [
+          el ~cls:"font-medium text-neutral-800" "p" [ txt "No projects yet" ];
+          el ~cls:"mt-1 text-sm text-neutral-500" "p"
+            [ txt "Create your first project to get started." ];
+        ];
+      Button.make ~variant:`primary ~children:[ txt "New project" ] ();
+    ]
+
+let stat_example () =
+  let spark = [ 40; 55; 45; 70; 60; 80; 72 ] in
+  el ~cls:(Ui.card ^ " w-64 p-4") "div"
+    [
+      el ~cls:"flex items-center justify-between" "div"
+        [
+          el ~cls:"text-xs text-neutral-500" "p" [ txt "Monthly revenue" ];
+          Badge.make ~variant:`soft
+            ~children:
+              [ Icon.make ~name:"trending-up" ~size:`xs ~extra_class:"mr-1" (); txt "12%" ]
+            ();
+        ];
+      el ~cls:"mt-1 text-3xl font-bold text-neutral-900" "p" [ txt "$48.2k" ];
+      el ~cls:"mt-3 flex h-8 items-end gap-1" "div"
+        (List.map
+           (fun v ->
+             el ~cls:"flex-1 rounded-sm bg-neutral-300"
+               ~attrs:[ View.Attr.make "style" (View.static ("height:" ^ string_of_int v ^ "%")) ]
+               "div" [])
+           spark);
+    ]
+
+let list_example () =
+  let people =
+    [
+      ("Ada Lovelace", "@ada", "Owner", "AL");
+      ("Grace Hopper", "@grace", "Admin", "GH");
+      ("Alan Turing", "@alan", "Member", "AT");
+    ]
+  in
+  el ~cls:"w-80 divide-y divide-neutral-100 rounded-lg border border-neutral-200 bg-surface" "div"
+    (List.map
+       (fun (name, handle, role, initials) ->
+         el ~cls:"flex items-center gap-3 px-4 py-3" "div"
+           [
+             Avatar.make ~initials ~size:"size-9 text-xs" ();
+             el ~cls:"min-w-0 flex-1" "div"
+               [
+                 el ~cls:"truncate text-sm font-medium text-neutral-900" "p" [ txt name ];
+                 el ~cls:"text-xs text-neutral-500" "p" [ txt handle ];
+               ];
+             Badge.make ~variant:`soft ~children:[ txt role ] ();
+             IconButton.make ~label:"More" ~children:[ Icon.make ~name:"more-horizontal" () ] ();
+           ])
+       people)
+
+let pagination_example () =
+  let page = Signal.make 2 in
+  let nav_btn =
+    "inline-flex size-9 items-center justify-center rounded-md text-sm transition-colors"
+  in
+  let arrow name step =
+    View.element
+      ~attrs:
+        [
+          View.Attr.className
+            (View.static (nav_btn ^ " border border-neutral-300 text-neutral-700 hover:bg-neutral-100"));
+        ]
+      ~events:[ View.On.click (fun _ -> Signal.update page step) ]
+      "button"
+      [ Icon.make ~name ~size:`sm () ]
+  in
+  let page_btn p =
+    let cls () =
+      nav_btn
+      ^
+      if Signal.get page = p then " bg-neutral-900 text-neutral-0"
+      else " text-neutral-700 hover:bg-neutral-100"
+    in
+    View.element
+      ~attrs:[ View.Attr.class_reactive cls ]
+      ~events:[ View.On.click (fun _ -> Signal.set page p) ]
+      "button"
+      [ txt (string_of_int p) ]
+  in
+  el ~cls:"flex items-center gap-1" "div"
+    (arrow "chevron-left" (fun p -> if p > 1 then p - 1 else 1)
+     :: List.map page_btn [ 1; 2; 3; 4; 5 ]
+    @ [ arrow "chevron-right" (fun p -> if p < 5 then p + 1 else 5) ])
+
+let toolbar_example () =
+  el ~cls:"flex w-full max-w-xl items-center gap-1 rounded-lg border border-neutral-200 bg-surface p-1"
+    "div"
+    [
+      IconButton.make ~label:"Bold" ~children:[ el ~cls:"font-bold" "span" [ txt "B" ] ] ();
+      IconButton.make ~label:"Italic" ~children:[ el ~cls:"italic" "span" [ txt "I" ] ] ();
+      IconButton.make ~label:"Underline" ~children:[ el ~cls:"underline" "span" [ txt "U" ] ] ();
+      Separator.make ~orientation:`vertical ~extra_class:"mx-1" ();
+      IconButton.make ~label:"Align left" ~children:[ Icon.make ~name:"align-left" () ] ();
+      IconButton.make ~label:"Align center" ~children:[ Icon.make ~name:"align-center" () ] ();
+      IconButton.make ~label:"Align right" ~children:[ Icon.make ~name:"align-right" () ] ();
+      el ~cls:"ml-auto" "div"
+        [ Button.make ~variant:`primary ~children:[ txt "Share" ] () ];
+    ]
+
+let footer_example () =
+  let col title items =
+    el ~cls:"space-y-2" "div"
+      (el ~cls:"text-xs font-semibold uppercase tracking-wide text-neutral-500" "p" [ txt title ]
+       :: List.map
+            (fun i ->
+              el "p"
+                [ Link_.make ~href:"#" ~variant:`muted ~extra_class:"text-sm" ~children:[ txt i ] () ])
+            items)
+  in
+  el ~cls:"w-full max-w-2xl rounded-lg border border-neutral-200 bg-surface p-6" "div"
+    [
+      el ~cls:"grid grid-cols-3 gap-6" "div"
+        [
+          col "Product" [ "Features"; "Pricing"; "Changelog" ];
+          col "Company" [ "About"; "Blog"; "Careers" ];
+          col "Legal" [ "Privacy"; "Terms" ];
+        ];
+      Separator.make ~extra_class:"my-5" ();
+      el ~cls:"flex items-center justify-between text-xs text-neutral-500" "div"
+        [
+          txt "\xc2\xa9 2026 Acme, Inc.";
+          el ~cls:"flex gap-3" "div"
+            [
+              Link_.make ~href:"#" ~variant:`muted ~children:[ txt "Twitter" ] ();
+              Link_.make ~href:"#" ~variant:`muted ~children:[ txt "GitHub" ] ();
+            ];
+        ];
+    ]
+
+(* ------------------------------------------------------------------ *)
+(* batch one — blocks                                                  *)
+(* ------------------------------------------------------------------ *)
+
+let hero_example () =
+  el ~cls:"w-full max-w-2xl rounded-lg border border-neutral-200 bg-surface px-8 py-12 text-center"
+    "div"
+    [
+      Badge.make ~variant:`outline ~children:[ txt "New \xc2\xb7 v2 is here" ] ();
+      el ~cls:"mx-auto mt-4 max-w-lg text-4xl font-bold tracking-tight text-neutral-900" "h2"
+        [ txt "Ship your product faster" ];
+      el ~cls:"mx-auto mt-3 max-w-md text-neutral-600" "p"
+        [ txt "The all-in-one toolkit to design, build, and launch \xe2\x80\x94 without the busywork." ];
+      el ~cls:"mt-6 flex justify-center gap-3" "div"
+        [
+          Button.make ~variant:`primary ~children:[ txt "Get started" ] ();
+          Button.make ~variant:`secondary ~children:[ txt "Book a demo" ] ();
+        ];
+      el ~cls:"mt-4 text-xs text-neutral-400" "p"
+        [ txt "Trusted by 4,000+ teams \xc2\xb7 No credit card required" ];
+    ]
+
+let feature_grid_example () =
+  let feats =
+    [
+      ("zap", "Fast", "Ship in minutes with sensible defaults.");
+      ("lock", "Secure", "Encryption and SSO out of the box.");
+      ("trending-up", "Scalable", "Grows from prototype to production.");
+    ]
+  in
+  el ~cls:"grid w-full max-w-2xl grid-cols-3 gap-4" "div"
+    (List.map
+       (fun (ic, title, desc) ->
+         el ~cls:(Ui.card ^ " p-5") "div"
+           [
+             el ~cls:"flex size-9 items-center justify-center rounded-md bg-neutral-100 text-neutral-700"
+               "div" [ Icon.make ~name:ic () ];
+             el ~cls:"mt-3 text-sm font-semibold text-neutral-900" "p" [ txt title ];
+             el ~cls:"mt-1 text-sm text-neutral-500" "p" [ txt desc ];
+           ])
+       feats)
+
+let testimonial_example () =
+  el ~cls:(Ui.card ^ " w-full max-w-lg p-6") "div"
+    [
+      el ~cls:"text-lg leading-relaxed text-neutral-800" "p"
+        [
+          txt
+            "\xe2\x80\x9cThe first tool our whole team actually enjoys using. It paid for itself in a \
+             week.\xe2\x80\x9d";
+        ];
+      el ~cls:"mt-4 flex items-center gap-3" "div"
+        [
+          Avatar.make ~initials:"GH" ~size:"size-10 text-sm" ();
+          el "div"
+            [
+              el ~cls:"text-sm font-medium text-neutral-900" "p" [ txt "Grace Hopper" ];
+              el ~cls:"text-xs text-neutral-500" "p" [ txt "VP Engineering, Acme" ];
+            ];
+        ];
+    ]
+
+let pricing_table_example () =
+  let rows =
+    [
+      ("Projects", "1", "Unlimited", "Unlimited");
+      ("Support", "Community", "Priority", "Dedicated");
+      ("SSO", "\xe2\x80\x93", "\xe2\x80\x93", "\xe2\x9c\x93");
+      ("Audit log", "\xe2\x80\x93", "\xe2\x9c\x93", "\xe2\x9c\x93");
+    ]
+  in
+  (* Cells carry either plain text or a yes/no marker; render markers as icons. *)
+  let cell_node v =
+    match v with
+    | "\xe2\x9c\x93" ->
+      Icon.make ~name:"check" ~size:`sm ~label:"Included" ~extra_class:"mx-auto text-status-success" ()
+    | "\xe2\x80\x93" ->
+      Icon.make ~name:"minus" ~size:`sm ~label:"Not included" ~extra_class:"mx-auto text-neutral-300" ()
+    | _ -> txt v
+  in
+  let th cls label = el ~cls "th" label in
+  el ~cls:"w-full max-w-2xl overflow-hidden rounded-lg border border-neutral-200" "div"
+    [
+      el ~cls:"w-full text-sm" "table"
+        [
+          el ~cls:"bg-neutral-50" "thead"
+            [
+              el "tr"
+                [
+                  th "px-4 py-3 text-left text-xs uppercase tracking-wide text-neutral-500"
+                    [ txt "Feature" ];
+                  th "px-4 py-3 text-center font-medium" [ txt "Starter" ];
+                  th "px-4 py-3 text-center font-medium"
+                    [
+                      el ~cls:"flex items-center justify-center gap-2" "div"
+                        [ txt "Pro"; Badge.make ~variant:`solid ~children:[ txt "Popular" ] () ];
+                    ];
+                  th "px-4 py-3 text-center font-medium" [ txt "Team" ];
+                ];
+            ];
+          el ~cls:"divide-y divide-neutral-100 text-neutral-700" "tbody"
+            (List.map
+               (fun (feat, a, b, c) ->
+                 el "tr"
+                   [
+                     el ~cls:"px-4 py-2 font-medium text-neutral-900" "td" [ txt feat ];
+                     el ~cls:"px-4 py-2 text-center" "td" [ cell_node a ];
+                     el ~cls:"px-4 py-2 text-center" "td" [ cell_node b ];
+                     el ~cls:"px-4 py-2 text-center" "td" [ cell_node c ];
+                   ])
+               rows
+            @ [
+                el "tr"
+                  [
+                    el ~cls:"px-4 py-3" "td" [];
+                    el ~cls:"px-4 py-3 text-center" "td"
+                      [ Button.make ~variant:`secondary ~children:[ txt "Choose" ] () ];
+                    el ~cls:"px-4 py-3 text-center" "td"
+                      [ Button.make ~variant:`primary ~children:[ txt "Choose" ] () ];
+                    el ~cls:"px-4 py-3 text-center" "td"
+                      [ Button.make ~variant:`secondary ~children:[ txt "Choose" ] () ];
+                  ];
+              ]);
+        ];
+    ]
+
+let faq_example () =
+  let open_id = Signal.make 0 in
+  let items =
+    [
+      (0, "Can I cancel anytime?", "Yes \xe2\x80\x94 cancel in one click, no questions asked.");
+      (1, "Do you offer refunds?", "We offer a 30-day money-back guarantee.");
+      (2, "Is there a free plan?", "Yes, the Starter plan is free forever.");
+    ]
+  in
+  el ~cls:"w-full max-w-xl divide-y divide-neutral-200 rounded-lg border border-neutral-200" "div"
+    (List.map
+       (fun (idx, q, a) ->
+         let is_open () = Signal.get open_id = idx in
+         el "div"
+           [
+             View.element
+               ~attrs:
+                 [
+                   View.Attr.className
+                     (View.static
+                        "flex w-full items-center justify-between px-4 py-3 text-left text-sm \
+                         font-medium text-neutral-800 hover:bg-neutral-50");
+                 ]
+               ~events:
+                 [
+                   View.On.click (fun _ ->
+                       Signal.update open_id (fun c -> if c = idx then -1 else idx));
+                 ]
+               "button"
+               [
+                 txt q;
+                 el ~cls:"text-neutral-400" "span"
+                   [
+                     View.show ~fallback:(Icon.make ~name:"plus" ~size:`sm ()) is_open
+                       (Icon.make ~name:"minus" ~size:`sm ());
+                   ];
+               ];
+             View.show is_open (el ~cls:"px-4 pb-3 text-sm text-neutral-500" "p" [ txt a ]);
+           ])
+       items)
+
+let cta_section_example () =
+  el ~cls:"w-full max-w-2xl rounded-lg bg-neutral-900 px-8 py-10 text-center text-neutral-0" "div"
+    [
+      el ~cls:"text-2xl font-bold" "h2" [ txt "Start building today" ];
+      el ~cls:"mt-2 text-sm text-neutral-300" "p"
+        [ txt "Join thousands of teams shipping faster. Free for 14 days." ];
+      el ~cls:"mx-auto mt-5 flex max-w-md gap-2" "div"
+        [
+          View.element
+            ~attrs:
+              [
+                View.Attr.className
+                  (View.static
+                     "flex-1 rounded-md border border-neutral-700 bg-neutral-800 px-3 py-2 text-sm \
+                      text-neutral-0 placeholder:text-neutral-500 focus-visible:outline-none \
+                      focus-visible:ring-2 focus-visible:ring-white");
+                View.Attr.placeholder (View.static "you@example.com");
+              ]
+            "input" [];
+          el
+            ~cls:
+              "rounded-md bg-surface px-4 py-2 text-sm font-medium text-neutral-900 \
+               hover:bg-neutral-200"
+            "button" [ txt "Get started" ];
+        ];
+    ]
+
+(* ------------------------------------------------------------------ *)
 (* registry + mount entry (the JS surface consumed by the website)     *)
 (* ------------------------------------------------------------------ *)
 
@@ -492,6 +964,26 @@ let example_for = function
   | "select" -> select_example ()
   | "tabs" -> tabs_example ()
   | "tooltip" -> tooltip_example ()
+  | "label" -> label_example ()
+  | "typography" -> typography_example ()
+  | "logo" -> logo_example ()
+  | "legend" -> legend_example ()
+  | "card" -> card_example ()
+  | "breadcrumb" -> breadcrumb_example ()
+  | "button-group" -> button_group_example ()
+  | "input-group" -> input_group_example ()
+  | "empty-state" -> empty_state_example ()
+  | "stat" -> stat_example ()
+  | "list" -> list_example ()
+  | "pagination" -> pagination_example ()
+  | "toolbar" -> toolbar_example ()
+  | "footer" -> footer_example ()
+  | "hero" -> hero_example ()
+  | "feature-grid" -> feature_grid_example ()
+  | "testimonial" -> testimonial_example ()
+  | "pricing-table" -> pricing_table_example ()
+  | "faq" -> faq_example ()
+  | "cta-section" -> cta_section_example ()
   | "announcement-bar" -> announcement_bar_example ()
   | "contact-section" -> contact_section_example ()
   | "logo-cloud" -> logo_cloud_example ()
@@ -521,6 +1013,10 @@ let example_ids =
     "slider"; "spinner"; "switch"; "textarea"; "toggle"; "toggle-group"; "accordion"; "alert";
     "collapsible"; "dialog"; "field"; "select"; "tabs"; "tooltip"; "announcement-bar";
     "contact-section"; "logo-cloud"; "newsletter"; "page-header"; "stat-grid"; "steps";
+    (* batch one *)
+    "label"; "typography"; "logo"; "legend"; "card"; "breadcrumb"; "button-group"; "input-group";
+    "empty-state"; "stat"; "list"; "pagination"; "toolbar"; "footer"; "hero"; "feature-grid";
+    "testimonial"; "pricing-table"; "faq"; "cta-section";
   |]
 
 (* Distinguishes the real compiled bundle from the checked-in placeholder. *)

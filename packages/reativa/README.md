@@ -13,13 +13,13 @@ reactive regions (driven by signals) update in place.
 
 ## What's implemented
 
-The same set `@prescriptive/xote` covers — 22 elements, 8 components, and 7 blocks:
+26 elements, 18 components, and 13 blocks:
 
 | Layer | Specs |
 | ----- | ----- |
-| element | `aspect-ratio` `avatar` `badge` `button` `checkbox` `icon` `icon-button` `input` `input-otp` `kbd` `link` `progress` `radio-group` `scroll-area` `separator` `skeleton` `slider` `spinner` `switch` `textarea` `toggle` `toggle-group` |
-| component | `accordion` `alert` `collapsible` `dialog` `field` `select` `tabs` `tooltip` |
-| block | `announcement-bar` `contact-section` `logo-cloud` `newsletter` `page-header` `stat-grid` `steps` |
+| element | `aspect-ratio` `avatar` `badge` `button` `checkbox` `icon` `icon-button` `input` `input-otp` `kbd` `label` `legend` `link` `logo` `progress` `radio-group` `scroll-area` `separator` `skeleton` `slider` `spinner` `switch` `textarea` `toggle` `toggle-group` `typography` |
+| component | `accordion` `alert` `breadcrumb` `button-group` `card` `collapsible` `dialog` `empty-state` `field` `footer` `input-group` `list` `pagination` `select` `stat` `tabs` `toolbar` `tooltip` |
+| block | `announcement-bar` `contact-section` `cta-section` `faq` `feature-grid` `hero` `logo-cloud` `newsletter` `page-header` `pricing-table` `stat-grid` `steps` `testimonial` |
 
 Each component is a plain function — `Button.make ~variant:\`primary ~children ()`
 — and composes the others. Enum prop types (`variant`, `size`, …) are generated
