@@ -11,7 +11,7 @@ let make ?(disabled = false) ~value ~options () =
   let open_ = Signal.make false in
   let label () = Signal.get value in
   let option_row o =
-    let mark () = if Signal.get value = o then "\xe2\x9c\x93" else "" in
+    let mark () = if Signal.get value = o then {js|✓|js} else "" in
     View.element ~attrs:[] "li"
       [
         View.element
@@ -43,7 +43,7 @@ let make ?(disabled = false) ~value ~options () =
          ]
        ~events:[ View.On.click (fun _ -> Signal.update open_ (fun v -> not v)) ]
        "button"
-       [ View.dyn_text label; <span className="text-neutral-400">("\xe2\x8c\x84")</span> ])
+       [ View.dyn_text label; <span className="text-neutral-400">({js|⌄|js})</span> ])
     (View.show
        (fun () -> Signal.get open_)
        (View.fragment

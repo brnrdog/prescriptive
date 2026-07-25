@@ -19,7 +19,7 @@ let make ?(type_ : Contracts.Accordion.type_ = `single) ?(collapsible = true) ~v
   in
   let render (id, header, panel) =
     let is_open () = List.mem id (Signal.get value) in
-    let mark () = if List.mem id (Signal.get value) then "\xe2\x88\x92" else "+" in
+    let mark () = if List.mem id (Signal.get value) then {js|−|js} else "+" in
     <div>
       <button
         className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium text-neutral-800 hover:bg-neutral-50"

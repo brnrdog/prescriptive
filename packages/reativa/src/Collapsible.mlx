@@ -8,7 +8,7 @@ open Reativa
 open Reativa.View.Mlx
 
 let make ~open_ ~label ~children () =
-  let caret () = if Signal.get open_ then "\xe2\x8c\x83" else "\xe2\x8c\x84" in
+  let caret () = if Signal.get open_ then {js|⌃|js} else {js|⌄|js} in
   <div className="w-80 space-y-2">
     (Button.make ~variant:`secondary ~extra_class:"w-full justify-between"
        ~on_click:(fun _ -> Signal.update open_ (fun v -> not v))

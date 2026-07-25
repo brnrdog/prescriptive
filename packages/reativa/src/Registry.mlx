@@ -60,7 +60,7 @@ let button_example () =
          [
            View.show ~fallback:(txt "Save")
              (fun () -> Signal.get loading)
-             (View.fragment [ Spinner.make ~tone:`on_accent (); txt "Saving\xe2\x80\xa6" ]);
+             (View.fragment [ Spinner.make ~tone:`on_accent (); txt {js|Saving…|js} ]);
          ]
        ())
   </div>
@@ -86,7 +86,7 @@ let textarea_example () =
   let value = Signal.make "" in
   <div className="max-w-sm">
     (Field.make ~label:"Message" ~for_:"ex-ta"
-       ~children:[ Textarea.make ~id:"ex-ta" ~rows:4 ~value ~placeholder:"Write something\xe2\x80\xa6" () ]
+       ~children:[ Textarea.make ~id:"ex-ta" ~rows:4 ~value ~placeholder:{js|Write something…|js} () ]
        ())
     <p className="mt-2 text-right text-xs text-neutral-500">
       (View.dyn_text (fun () -> string_of_int (String.length (Signal.get value))))
@@ -148,7 +148,7 @@ let progress_example () =
     <div className="flex gap-2">
       (Button.make ~variant:`secondary
          ~on_click:(fun _ -> Signal.update value (fun v -> if v > 10 then v - 10 else 0))
-         ~children:[ txt "\xe2\x88\x9210" ] ())
+         ~children:[ txt {js|−10|js} ] ())
       (Button.make ~variant:`secondary
          ~on_click:(fun _ -> Signal.update value (fun v -> if v < 90 then v + 10 else 100))
          ~children:[ txt "+10" ] ())
@@ -160,7 +160,7 @@ let spinner_example () =
     (Spinner.make ~size:"size-4" ())
     (Spinner.make ~size:"size-6" ())
     (Spinner.make ~size:"size-8" ())
-    <span className="text-sm text-neutral-500">("Loading\xe2\x80\xa6")</span>
+    <span className="text-sm text-neutral-500">({js|Loading…|js})</span>
   </div>
 
 let skeleton_example () =
@@ -192,7 +192,7 @@ let separator_example () =
 let kbd_example () =
   <div className="flex items-center gap-2 text-sm text-neutral-700">
     <span>("Open search")</span>
-    (Kbd.make ~children:[ txt "\xe2\x8c\x98" ] ())
+    (Kbd.make ~children:[ txt {js|⌘|js} ] ())
     (Kbd.make ~children:[ txt "K" ] ())
   </div>
 
@@ -238,8 +238,8 @@ let radio_group_example () =
   let value = Signal.make "express" in
   let opts =
     [
-      ("standard", "Standard", "3\xe2\x80\x935 business days");
-      ("express", "Express", "1\xe2\x80\x932 business days");
+      ("standard", "Standard", {js|3–5 business days|js});
+      ("express", "Express", {js|1–2 business days|js});
       ("overnight", "Overnight", "Next business day");
     ]
   in
@@ -321,7 +321,7 @@ let accordion_example () =
     [
       ("what", "What is a spec?", "A technology-agnostic definition of a UI pattern, described in words.");
       ("framework", "Is it tied to a framework?",
-       "No. Each spec maps onto any stack \xe2\x80\x94 this site happens to use Xote.");
+       {js|No. Each spec maps onto any stack — this site happens to use Xote.|js});
       ("contribute", "Can I contribute?",
        "Yes. Copy the template, fill every section, and open a pull request.");
     ]
@@ -419,7 +419,7 @@ let stat_grid_example () =
     [
       ("Revenue", "$48.2k", "+12% vs. last month", `up);
       ("Active users", "1,203", "+3% vs. last month", `up);
-      ("Signups", "312", "\xe2\x88\x925% vs. last month", `down);
+      ("Signups", "312", {js|−5% vs. last month|js}, `down);
       ("Uptime", "99.98%", "flat vs. last month", `flat);
     ]
   in
@@ -472,12 +472,12 @@ let newsletter_example () =
 
 let announcement_bar_example () =
   <div className="w-full max-w-2xl space-y-3">
-    (AnnouncementBar.make ~variant:`accent ~message:"v2 ships May 4 \xe2\x80\x94 everything gets faster."
+    (AnnouncementBar.make ~variant:`accent ~message:{js|v2 ships May 4 — everything gets faster.|js}
        ~action_label:"See what's new" ())
     (AnnouncementBar.make ~variant:`neutral ~message:"We've updated our terms of service."
        ~action_label:"Read the changes" ())
     (AnnouncementBar.make ~variant:`warning
-       ~message:"Scheduled maintenance Sunday 02:00\xe2\x80\x9304:00 UTC." ())
+       ~message:{js|Scheduled maintenance Sunday 02:00–04:00 UTC.|js} ())
   </div>
 
 (* ------------------------------------------------------------------ *)
@@ -737,7 +737,7 @@ let footer_example () =
       Separator.make ~extra_class:"my-5" ();
       el ~cls:"flex items-center justify-between text-xs text-neutral-500" "div"
         [
-          txt "\xc2\xa9 2026 Acme, Inc.";
+          txt {js|© 2026 Acme, Inc.|js};
           el ~cls:"flex gap-3" "div"
             [
               Link_.make ~href:"#" ~variant:`muted ~children:[ txt "Twitter" ] ();
@@ -754,18 +754,18 @@ let hero_example () =
   el ~cls:"w-full max-w-2xl rounded-lg border border-neutral-200 bg-surface px-8 py-12 text-center"
     "div"
     [
-      Badge.make ~variant:`outline ~children:[ txt "New \xc2\xb7 v2 is here" ] ();
+      Badge.make ~variant:`outline ~children:[ txt {js|New · v2 is here|js} ] ();
       el ~cls:"mx-auto mt-4 max-w-lg text-4xl font-bold tracking-tight text-neutral-900" "h2"
         [ txt "Ship your product faster" ];
       el ~cls:"mx-auto mt-3 max-w-md text-neutral-600" "p"
-        [ txt "The all-in-one toolkit to design, build, and launch \xe2\x80\x94 without the busywork." ];
+        [ txt {js|The all-in-one toolkit to design, build, and launch — without the busywork.|js} ];
       el ~cls:"mt-6 flex justify-center gap-3" "div"
         [
           Button.make ~variant:`primary ~children:[ txt "Get started" ] ();
           Button.make ~variant:`secondary ~children:[ txt "Book a demo" ] ();
         ];
       el ~cls:"mt-4 text-xs text-neutral-400" "p"
-        [ txt "Trusted by 4,000+ teams \xc2\xb7 No credit card required" ];
+        [ txt {js|Trusted by 4,000+ teams · No credit card required|js} ];
     ]
 
 let feature_grid_example () =
@@ -794,8 +794,7 @@ let testimonial_example () =
       el ~cls:"text-lg leading-relaxed text-neutral-800" "p"
         [
           txt
-            "\xe2\x80\x9cThe first tool our whole team actually enjoys using. It paid for itself in a \
-             week.\xe2\x80\x9d";
+            {js|“The first tool our whole team actually enjoys using. It paid for itself in a week.”|js};
         ];
       el ~cls:"mt-4 flex items-center gap-3" "div"
         [
@@ -809,22 +808,26 @@ let testimonial_example () =
     ]
 
 let pricing_table_example () =
+  (* Melange rewrites js-quoted literals only in expression position, so bind the
+     yes/no markers once and compare against them — the same literal used as a
+     *pattern* would still be raw UTF-8 bytes and never match the JS string. *)
+  let yes = {js|✓|js} in
+  let no = {js|–|js} in
   let rows =
     [
       ("Projects", "1", "Unlimited", "Unlimited");
       ("Support", "Community", "Priority", "Dedicated");
-      ("SSO", "\xe2\x80\x93", "\xe2\x80\x93", "\xe2\x9c\x93");
-      ("Audit log", "\xe2\x80\x93", "\xe2\x9c\x93", "\xe2\x9c\x93");
+      ("SSO", no, no, yes);
+      ("Audit log", no, yes, yes);
     ]
   in
   (* Cells carry either plain text or a yes/no marker; render markers as icons. *)
   let cell_node v =
-    match v with
-    | "\xe2\x9c\x93" ->
+    if v = yes then
       Icon.make ~name:"check" ~size:`sm ~label:"Included" ~extra_class:"mx-auto text-status-success" ()
-    | "\xe2\x80\x93" ->
+    else if v = no then
       Icon.make ~name:"minus" ~size:`sm ~label:"Not included" ~extra_class:"mx-auto text-neutral-300" ()
-    | _ -> txt v
+    else txt v
   in
   let th cls label = el ~cls "th" label in
   el ~cls:"w-full max-w-2xl overflow-hidden rounded-lg border border-neutral-200" "div"
@@ -876,7 +879,7 @@ let faq_example () =
   let open_id = Signal.make 0 in
   let items =
     [
-      (0, "Can I cancel anytime?", "Yes \xe2\x80\x94 cancel in one click, no questions asked.");
+      (0, "Can I cancel anytime?", {js|Yes — cancel in one click, no questions asked.|js});
       (1, "Do you offer refunds?", "We offer a 30-day money-back guarantee.");
       (2, "Is there a free plan?", "Yes, the Starter plan is free forever.");
     ]
@@ -1091,8 +1094,8 @@ let playground_for spec_id (get : string -> string) =
     RadioGroup.make ~value:(Signal.make "express")
       ~options:
         [
-          ("standard", "Standard", "3\xe2\x80\x935 business days");
-          ("express", "Express", "1\xe2\x80\x932 business days");
+          ("standard", "Standard", {js|3–5 business days|js});
+          ("express", "Express", {js|1–2 business days|js});
           ("overnight", "Overnight", "Next business day");
         ]
       ~legend:(get "legend") ~orientation ~disabled:(is_true "disabled")
@@ -1116,7 +1119,7 @@ let playground_for spec_id (get : string -> string) =
     let rows =
       List.init 24 (fun i ->
           "Row " ^ string_of_int (i + 1)
-          ^ " \xe2\x80\x94 the quick brown fox jumps over the lazy dog")
+          ^ {js| — the quick brown fox jumps over the lazy dog|js})
     in
     ScrollArea.make ~orientation ~extra_class:"h-44 w-64 rounded-md border border-neutral-200"
       ~children:
@@ -1167,7 +1170,7 @@ let playground_for spec_id (get : string -> string) =
               ("what", "What is a spec?", "A technology-agnostic definition of a UI pattern.");
               ("framework", "Is it tied to a framework?", "No. Each spec maps onto any stack.");
               ( "contribute", "Can I contribute?",
-                "Yes \xe2\x80\x94 copy the template and open a pull request." );
+                {js|Yes — copy the template and open a pull request.|js} );
             ]
           ();
       ]
@@ -1538,7 +1541,7 @@ let data_table_example () =
     [
       el ~cls:"flex items-center justify-between" "div"
         [
-          Input.make ~type_:"search" ~extra_class:"max-w-48" ~placeholder:"Filter people\xe2\x80\xa6"
+          Input.make ~type_:"search" ~extra_class:"max-w-48" ~placeholder:{js|Filter people…|js}
             ~on_input:(fun e -> Signal.set query (Ui.input_value e))
             ();
           Button.make ~variant:`secondary
@@ -1652,7 +1655,7 @@ let combobox_example () =
   let open_ = Signal.make false in
   let value = Signal.make "" in
   let filtered () = List.filter (fun o -> contains_ci o (Signal.get query)) all in
-  let display () = if Signal.get value = "" then "Select framework\xe2\x80\xa6" else Signal.get value in
+  let display () = if Signal.get value = "" then {js|Select framework…|js} else Signal.get value in
   el ~cls:"relative w-64" "div"
     [
       View.element
@@ -1678,7 +1681,7 @@ let combobox_example () =
                   shadow-lg"
                "div"
                [
-                 Input.make ~extra_class:"mb-1" ~placeholder:"Search\xe2\x80\xa6"
+                 Input.make ~extra_class:"mb-1" ~placeholder:{js|Search…|js}
                    ~on_input:(fun e -> Signal.set query (Ui.input_value e))
                    ();
                  el ~cls:"max-h-40 overflow-y-auto" "ul"
@@ -1719,7 +1722,7 @@ let command_example () =
           [
             View.Attr.className
               (View.static "w-full border-b border-neutral-200 px-4 py-3 text-sm focus:outline-none");
-            View.Attr.placeholder (View.static "Type a command\xe2\x80\xa6");
+            View.Attr.placeholder (View.static {js|Type a command…|js});
           ]
         ~events:[ View.On.input (fun e -> Signal.set query (Ui.input_value e)) ]
         "input" [];
@@ -1985,7 +1988,7 @@ let search_example () =
               [
                 View.Attr.className
                   (View.static "flex-1 bg-transparent py-2 text-sm focus:outline-none");
-                View.Attr.placeholder (View.static "Search\xe2\x80\xa6");
+                View.Attr.placeholder (View.static {js|Search…|js});
               ]
             ~events:
               [
@@ -1999,7 +2002,7 @@ let search_example () =
             (fun () -> Signal.get query <> "")
             (IconButton.make ~label:"Clear search"
                ~on_click:(fun _ -> Signal.set query "")
-               ~children:[ txt "\xc3\x97" ] ());
+               ~children:[ txt {js|×|js} ] ());
         ];
       View.show
         (fun () -> Signal.get open_)
@@ -2058,8 +2061,7 @@ let comment_example () =
               el ~cls:"mt-1 text-sm text-neutral-700" "p"
                 [
                   txt
-                    "Great write-up \xe2\x80\x94 the section on reuse really clicked for me. Shipping \
-                     this to my team.";
+                    {js|Great write-up — the section on reuse really clicked for me. Shipping this to my team.|js};
                 ];
               el ~cls:"mt-2 flex gap-3 text-xs text-neutral-500" "div"
                 [
@@ -2095,7 +2097,7 @@ let form_example () =
                   View.Attr.id (View.static "frm-msg");
                   View.Attr.make "rows" (View.static "3");
                   View.Attr.className (View.static (Ui.input_base ^ " resize-none"));
-                  View.Attr.placeholder (View.static "Say hello\xe2\x80\xa6");
+                  View.Attr.placeholder (View.static {js|Say hello…|js});
                 ]
               "textarea" [];
           ]
@@ -2105,7 +2107,7 @@ let form_example () =
       View.show
         (fun () -> Signal.get sent)
         (el ~cls:"rounded-md bg-neutral-100 px-3 py-2 text-center text-sm text-neutral-700" "p"
-           [ txt "Thanks \xe2\x80\x94 we'll be in touch." ]);
+           [ txt {js|Thanks — we'll be in touch.|js} ]);
     ]
 
 let landing_page_example () =
@@ -2118,14 +2120,13 @@ let landing_page_example () =
         ];
       el ~cls:"px-8 py-12 text-center" "div"
         [
-          Badge.make ~variant:`outline ~children:[ txt "New \xc2\xb7 v2 is here" ] ();
+          Badge.make ~variant:`outline ~children:[ txt {js|New · v2 is here|js} ] ();
           el ~cls:"mx-auto mt-4 max-w-md text-3xl font-bold tracking-tight text-neutral-900" "h2"
             [ txt "Ship your product faster" ];
           el ~cls:"mx-auto mt-3 max-w-sm text-sm text-neutral-500" "p"
             [
               txt
-                "One primary action, front and center \xe2\x80\x94 everything on the page builds \
-                 toward it.";
+                {js|One primary action, front and center — everything on the page builds toward it.|js};
             ];
           el ~cls:"mt-6 flex justify-center gap-3" "div"
             [
@@ -2151,7 +2152,7 @@ let dashboard_example () =
         [
           stat "Revenue" "$48.2k" "+12% MoM";
           stat "Active users" "3,190" "+4% MoM";
-          stat "Churn" "1.8%" "\xe2\x88\x920.3% MoM";
+          stat "Churn" "1.8%" {js|−0.3% MoM|js};
         ];
       el ~cls:(Ui.card ^ " p-4") "div"
         [
@@ -2215,13 +2216,7 @@ let sign_in_example () =
         ~children:[ Input.make ~id:"si-email" ~type_:"email" ~placeholder:"you@example.com" () ]
         ();
       Field.make ~label:"Password" ~for_:"si-pass"
-        ~children:
-          [
-            Input.make ~id:"si-pass" ~type_:"password"
-              ~placeholder:
-                "\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2"
-              ();
-          ]
+        ~children:[ Input.make ~id:"si-pass" ~type_:"password" ~placeholder:{js|••••••••|js} () ]
         ();
       el ~cls:"flex items-center justify-between text-sm" "div"
         [
@@ -2316,12 +2311,7 @@ let authentication_example () =
                ();
              Field.make ~label:"Password" ~for_:"auth-pass"
                ~children:
-                 [
-                   Input.make ~id:"auth-pass" ~type_:"password"
-                     ~placeholder:
-                       "\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2\xe2\x80\xa2"
-                     ();
-                 ]
+                 [ Input.make ~id:"auth-pass" ~type_:"password" ~placeholder:{js|••••••••|js} () ]
                ();
              Button.make ~variant:`primary ~extra_class:"w-full"
                ~on_click:(fun _ -> Signal.set step 2) ~children:[ txt "Continue" ] ();
