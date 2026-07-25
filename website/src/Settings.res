@@ -210,6 +210,16 @@ let resetTokensAndReload = () => {
   reload()
 }
 
+// A preset stored by an older release may name a theme that no longer ships. Its
+// token overrides are still in localStorage, so the site would come up wearing a
+// palette the picker can't show — and the mode/corner controls, which re-apply
+// the current theme, would do nothing. Drop it back to the baseline on boot.
+let dropStalePreset = () =>
+  switch themeById(Signal.get(presetSel)) {
+  | Some(_) => ()
+  | None => resetTokens()
+  }
+
 // --- UI ------------------------------------------------------------------------
 module Trigger = {
   @jsx.component
@@ -273,22 +283,33 @@ module Panel = {
                 )
               )
               <button class={Prop.signal(cls)} onClick={_ => applyPreset(p)}>
-                {Array.length(p.swatches) == 1
-                  ? <span
-                      class="size-6 rounded-full ring-1 ring-black/10"
-                      style={"background-color: " ++ Array.getUnsafe(p.swatches, 0)}
-                    />
-                  : <span class="flex h-6 overflow-hidden rounded-full ring-1 ring-black/10">
-                      <View.For
-                        each={Prop.static(p.swatches)}
-                        render={c => <span class="w-1.5" style={"background-color: " ++ c} />}
-                      />
-                    </span>}
+                // One chip shape for every theme: equal segments of surface,
+                // accent, and ink, so the palettes are comparable at a glance.
+                <span class="flex h-6 w-full overflow-hidden rounded-full ring-1 ring-black/10">
+                  <View.For
+                    each={Prop.static(p.swatches)}
+                    render={c => <span class="flex-1" style={"background-color: " ++ c} />}
+                  />
+                </span>
                 <span class="text-[11px] font-medium text-ink"> <View.Text> {p.label} </View.Text> </span>
               </button>
             }}
           />
         </div>
+
+        {
+          // What the selected palette is for — each theme carries its own note.
+          let desc = Computed.make(() =>
+            switch themeById(Signal.get(presetSel)) {
+            | Some(t) => t.description
+            | None => ""
+            }
+          )
+          // Fixed height so switching themes doesn't shuffle the controls below.
+          <p class="mt-2 min-h-8 text-[11px] leading-snug text-muted">
+            <View.Text> {Prop.signal(desc)} </View.Text>
+          </p>
+        }
 
         // Corner radius — an orthogonal overlay on top of the theme.
         <div class="mt-4">

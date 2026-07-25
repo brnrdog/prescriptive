@@ -23,6 +23,7 @@ const body = themes
     (t) => `  {
     id: ${s(t.id)},
     label: ${s(t.label)},
+    description: ${s(t.description || "")},
     swatches: ${arr(t.swatches || [])},
     tokens: ${pairs(t.tokens)},
     darkTokens: ${pairs(t.dark)},
@@ -37,6 +38,7 @@ const out = `// GENERATED FILE — do not edit by hand.
 type theme = {
   id: string,
   label: string,
+  description: string,
   swatches: array<string>,
   tokens: array<(string, string)>,
   darkTokens: array<(string, string)>,

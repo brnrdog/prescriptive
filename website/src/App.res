@@ -1113,8 +1113,10 @@ module KitchenSink = {
 let make = () => {
   // Global ⌘K opens the spotlight search.
   Effect.run(() => Some(Ui.onCmdK(() => Signal.set(spotlightOpen, true))))
-  // Re-apply any persisted preset / per-token overrides on startup.
+  // Re-apply any persisted preset / per-token overrides on startup, after
+  // discarding a preset that names a theme this release no longer ships.
   Effect.run(() => {
+    Settings.dropStalePreset()
     Settings.loadTokenOverrides()
     Settings.syncColorScheme()
     None
