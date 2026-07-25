@@ -81,7 +81,7 @@ let make ?(description = "") ?(details = []) ?on_submit ~heading () =
              View.show
                (fun () -> Signal.get sent)
                (<p className="rounded-md bg-action-subtle px-3 py-2 text-sm text-ink">
-                  ("Thanks \xe2\x80\x94 your message is on its way. We reply within one business day.")
+                  ({js|Thanks — your message is on its way. We reply within one business day.|js})
                 </p>);
            ]);
       ]

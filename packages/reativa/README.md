@@ -38,6 +38,28 @@ one. It exports the JS surface the website consumes:
 `mount_example(specId, containerId)`, `example_ids`,
 `mount_playground(specId, containerId, props)`, `playground_ids`, and `built`.
 
+## Non-ASCII text
+
+An OCaml `string` is a byte sequence, and Melange emits it one byte per JS code
+unit — so a plain literal holding a non-ASCII character (whether typed directly
+or escaped as `"\xe2\x80\x94"`) reaches the browser as mojibake (`â€"` instead
+of `—`). Write any user-visible text carrying an em dash, ellipsis, checkmark,
+caret, bullet, or similar with Melange's js-quoted string, which compiles to a
+real JavaScript string:
+
+```ocaml
+txt {js|Saving…|js}
+```
+
+The rewrite applies to *expression* position only. A js-quoted literal used as a
+**pattern** is still the raw UTF-8 bytes and will never match, so compare
+against a binding instead of matching on it:
+
+```ocaml
+let yes = {js|✓|js} in
+if v = yes then (* … *)
+```
+
 ## Building
 
 reativa's core library has **no `public_name`**, so it is a *private* dune

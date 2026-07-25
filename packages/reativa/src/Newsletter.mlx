@@ -61,7 +61,7 @@ let make ?(description = "") ?(consent = "") ?on_subscribe ~heading () =
              (fun () -> Signal.get done_)
              (<p className="mx-auto mt-5 flex max-w-md items-center justify-center gap-2 text-sm text-ink">
                 <span className="text-status-success">(Icon.make ~name:"check-circle" ())</span>
-                ("Almost there \xe2\x80\x94 check your inbox to confirm.")
+                ({js|Almost there — check your inbox to confirm.|js})
               </p>);
          ]);
       (if consent = "" then View.empty
